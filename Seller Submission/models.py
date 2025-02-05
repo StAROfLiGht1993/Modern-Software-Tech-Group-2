@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from sqlalchemy import Column, String, Float, Integer
 from database import Base
 

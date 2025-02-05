@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
