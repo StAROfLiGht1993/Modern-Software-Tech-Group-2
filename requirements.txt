@@ -1,0 +1,6 @@
+fastapi[standard]==0.115.6
+pydantic==2.10.4
+requests==2.32.3
+SQLAlchemy==2.0.36
+alembic==1.14.0
+pypdf==5.1.0
