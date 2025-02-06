@@ -13,7 +13,7 @@ from sqlalchemy.orm import relationship
 class Profile(Base):
     __tablename__ = "profiles"
 
-    UserID = Column(VARCHAR, primary_key=True, index=True)
+    UserID = Column(Integer, primary_key=True, index=True)
     Username = Column(VARCHAR, nullable=False, unique=True)
     Password = Column(VARCHAR, nullable=False)
     Email = Column(VARCHAR, nullable=True)  # PDPA

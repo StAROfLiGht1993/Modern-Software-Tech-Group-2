@@ -25,4 +25,24 @@ class Auction(Base):
     Status = Column(VARCHAR, nullable=False, default="In Progress")
     EndTime = Column(DateTime, nullable=False)
 
-    HighestBidderID = Column()
+    HighestBidderID = Column(Integer, nullable=False)
+    HighestBid = Column(Float, nullable=False)
+
+class AuctionBase(BaseModel):
+    AuctionID : int
+    CardID : int
+    SellerID : int
+    MinimumIncrement : float
+    Status : str
+    HighestBidderID : int
+    HighestBid : float
+
+class AuctionInfo(AuctionBase):
+    pass
+
+class AuctionResponse(AuctionBase):
+    model_config = ConfigDict(from_attributes=True)
+    AuctionID: int
+    CardID: int
+    SellerID: int
+    MinimumIncrement: float
