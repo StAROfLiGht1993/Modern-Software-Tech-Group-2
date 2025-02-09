@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Depends
 from fastapi.responses import HTMLResponse
 from app.services.auction_service import get_auctions_by_page, bid_auction, get_total_page
-from app.database import SessionLocal
+from app.db.db import SessionLocal
 from pydantic import BaseModel
 from app.models.auction import AuctionInfo
 from typing import Dict

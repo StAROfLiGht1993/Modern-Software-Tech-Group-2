@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from app.models.card import Card, CardInfo
 from app.models.profile import Profile
 from app.models.auction import Auction, AuctionInfo
-from profile_service import ProfileService
+from app.services.profile_service import ProfileService
 
 class SearchService:
     def __init__(self, db: Session):
