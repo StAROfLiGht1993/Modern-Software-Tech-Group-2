@@ -7,14 +7,20 @@ from pathlib import Path
 from decimal import Decimal
 from app.services.auction_service import AuctionService
 from app.models.auction import AuctionInfo, AuctionResponse
+from app.dependencies.services import get_auction_service
+import logging
 
 app = FastAPI()
 router = APIRouter()
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 # Get the base directory where the script is located
 BASE_DIR = Path(__file__).resolve().parent.parent  
 STATIC_DIR = BASE_DIR / "static"
-IMAGE_DIR = STATIC_DIR / "image"  
+IMAGE_DIR = STATIC_DIR / "images"  
 IMAGE_DIR.mkdir(parents=True, exist_ok=True)
 
 # Mount static files
@@ -41,7 +47,7 @@ def create_auction(
     starting_bid: Decimal = Form(...),
     minimum_increment: Decimal = Form(...),
     auction_duration: float = Form(...),
-    service: AuctionService = Depends(AuctionService),
+    service: AuctionService = Depends(get_auction_service),
 ):
     """Handles auction submission and saves the uploaded image."""
 
@@ -65,6 +71,7 @@ def create_auction(
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
     except Exception as e:
+        logger.error(f"Failed to save file: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     # Store auction details (via service layer)
@@ -74,10 +81,14 @@ def create_auction(
         starting_bid=starting_bid,
         minimum_increment=minimum_increment,
         auction_duration=auction_duration,
-        image_url=f"/static/image/{unique_filename}"
+        image_url=f"/static/images/{unique_filename}"
     )
     
-    created_auction = service.create_auction(auction_info)
+    try:
+        created_auction = service.create_auction(auction_info)
+    except Exception as e:
+        logger.error(f"Failed to create auction: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Failed to create auction: {str(e)}")
 
     if not created_auction:
         raise HTTPException(status_code=400, detail="Failed to create auction")

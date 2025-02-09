@@ -15,12 +15,13 @@ from typing import Union
 class AuctionService:
     def __init__(self, db: Session):
         self.db = db
+        self.auctions = []
 
-    def get_auction_by_id(self, auction_id: int):
+    def get_auction_by_id(self, auction_id: int) -> Union[Auction, None]:
         """
         Get specific auction by auction ID
         """
-        return self.db.query(Auction).filter(Auction.AuctionID == auction_id).first()
+        return self.db.query(Auction).filter(Auction.id == auction_id).first()
 
     def add_auction(self, card_id: int, auction_data: AuctionInfo):
         """
@@ -118,3 +119,20 @@ class AuctionService:
             )
 
         return auction_list
+
+    def create_auction(self, auction_info: AuctionInfo) -> Union[Auction, None]:
+        """
+        Create a new auction with the provided auction information.
+        """
+        new_auction = Auction(
+            card_id=auction_info.card_id,
+            description=auction_info.description,
+            starting_bid=auction_info.starting_bid,
+            minimum_increment=auction_info.minimum_increment,
+            auction_duration=auction_info.auction_duration,
+            image_url=auction_info.image_url
+        )
+        self.db.add(new_auction)
+        self.db.commit()
+        self.db.refresh(new_auction)
+        return new_auction

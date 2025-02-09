@@ -9,6 +9,7 @@ from app.db.db import Base
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import relationship
 from decimal import Decimal
+from typing import Optional
 
 
 class Auction(Base):
