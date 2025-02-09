@@ -9,6 +9,7 @@ from app.models.card import Card, CardInfo
 from app.models.profile import Profile
 from app.models.auction import Auction, AuctionInfo
 from profile_service import ProfileService
+from datetime import datetime
 
 from typing import Union
 
@@ -17,6 +18,22 @@ class AuctionService:
     def __init__(self, db: Session):
         self.db = db
 
+    def get_auctions_by_page(self, page:int):
+        """
+        Get auctions by page limited to 10 auctions per page
+        Display the expiring auctions first
+        """
+        current_date = datetime.today().date() # assume endtime is a date
+        return self.db.query(Auction).filter(Auction.EndTime>=current_date).order_by(Auction.EndTime).offset((page-1)*10).limit(10).all()
+
+    def get_total_page(self):
+            """
+            Get total page of auctions
+            """
+            current_date = datetime.today().date() # assume endtime is a date
+            available_auction = self.db.query(Auction).filter(Auction.EndTime>=current_date).all()
+            return len(available_auction) // 10 + 1
+    
     def get_auction_by_id(self, auction_id: int):
         """
         Get specific auction by auction ID
@@ -76,15 +93,7 @@ class AuctionService:
             return None  # Return 404 profile not found
 
         # Check if current bid is higher than latest bid
-        auction = (
-            self.db.query(Auction)
-            .filter(
-                Auction.AuctionID == auction_id,
-                Auction.HighestBid >= bid_info.HighestBid,
-            )
-            .first()
-        )
-        if not auction:
+        if auction.HighestBid >= bid_info.HighestBid:
             return None  # Current bid not high enough
         else:
             for key, value in bid_info.model_dump().items():
