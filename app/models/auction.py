@@ -8,6 +8,7 @@ from sqlalchemy import Column, Integer, VARCHAR, Float, ForeignKey, DateTime
 from app.db.db import Base
 from pydantic import BaseModel, ConfigDict
 from sqlalchemy.orm import relationship
+from decimal import Decimal
 
 
 class Auction(Base):
@@ -37,12 +38,19 @@ class AuctionBase(BaseModel):
     HighestBidderID : int
     HighestBid : float
 
-class AuctionInfo(AuctionBase):
-    pass
+class AuctionInfo(BaseModel):
+    card_id: int
+    description: str
+    starting_bid: Decimal
+    minimum_increment: Decimal
+    auction_duration: float
+    image_url: str
 
-class AuctionResponse(AuctionBase):
-    model_config = ConfigDict(from_attributes=True)
-    AuctionID: int
-    CardID: int
-    SellerID: int
-    MinimumIncrement: float
+class AuctionResponse(BaseModel):
+    id: int
+    card_id: int
+    description: str
+    starting_bid: Decimal
+    minimum_increment: Decimal
+    auction_duration: float
+    image_url: str

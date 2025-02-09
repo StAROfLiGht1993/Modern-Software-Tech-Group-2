@@ -5,10 +5,8 @@ import shutil
 import uuid
 from pathlib import Path
 from decimal import Decimal
-from app.services.seller_submission_service import SellerSubmissionService
+from app.services.auction_service import AuctionService
 from app.models.auction import AuctionInfo, AuctionResponse
-from sqlalchemy.orm import Session
-from app.database import get_db
 
 app = FastAPI()
 router = APIRouter()
@@ -43,8 +41,7 @@ def create_auction(
     starting_bid: Decimal = Form(...),
     minimum_increment: Decimal = Form(...),
     auction_duration: float = Form(...),
-    db: Session = Depends(get_db),
-    service: SellerSubmissionService = Depends(SellerSubmissionService),
+    service: AuctionService = Depends(AuctionService),
 ):
     """Handles auction submission and saves the uploaded image."""
 
@@ -70,7 +67,7 @@ def create_auction(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
-    # Store auction details in DB (via service layer)
+    # Store auction details (via service layer)
     auction_info = AuctionInfo(
         card_id=card_id,
         description=description,
