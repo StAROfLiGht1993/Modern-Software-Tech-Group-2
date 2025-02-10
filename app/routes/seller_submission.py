@@ -82,4 +82,4 @@ def get_form():
     if not os.path.exists(html_file_path):
         raise HTTPException(status_code=404, detail="Template file not found!")
 
-    return FileResponse(html_file_path, media_type="text/html")\
+    return FileResponse(html_file_path, media_type="text/html")
