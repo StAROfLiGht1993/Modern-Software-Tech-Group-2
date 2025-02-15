@@ -1,12 +1,16 @@
-from fastapi import FastAPI
-from app.routes import card_verification, seller_submission
+#!/usr/bin/env python3
 
-app = FastAPI(
-    title="Book Management API",
-    description="An API for managing books and integrating with OpenAI",
-    version="1.0.0",
-)
+# TODO Shift the Running of the Application here
+
+from fastapi import FastAPI
+from app.routes import seller_submission, card_verification
+
+app = FastAPI()
 
 # Include routes
-app.include_router(card_verification.router, prefix="/books", tags=["Books"])
-app.include_router(seller_submission.router, prefix="", tags=["Reviews"])
+app.include_router(seller_submission.router, prefix="/auction")
+app.include_router(card_verification.router, prefix="/verification")
+
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Pokémon Card Auction Platform"}
