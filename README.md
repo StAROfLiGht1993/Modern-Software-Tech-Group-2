@@ -79,3 +79,29 @@ alembic upgrade head
 ```
 uvicorn app.main:app --reload
 ```
+
+
+## Installing Tesseract OCR
+
+Tesseract OCR is required for extracting text from Pokémon cards in this project.
+
+## Download Tesseract:
+
+Go to [the Tesseract Download Page.](https://github.com/UB-Mannheim/tesseract/wiki)
+Download the correct version based on your computer's operating system (Windows, Mac, or Linux).
+
+## Install Tesseract:
+
+Follow the installation steps provided on the download page.
+Take note of the installation path (e.g., C:\Program Files\Tesseract-OCR).
+Add Tesseract to Environment Variables:
+Go to the Start Menu and search for Edit environment variables.
+Under User Variables, select Path and click Edit.
+Add a new entry pointing to the Tesseract installation path (e.g., C:\Program Files\Tesseract-OCR).
+Click OK to save changes and close the window.
+
+Verify Tesseract Installation:
+Open a new Command Prompt or terminal.
+Run the following command:
+tesseract -v
+You should see Tesseract's version information if it's installed correctly.
