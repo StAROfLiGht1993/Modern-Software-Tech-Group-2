@@ -18,7 +18,6 @@ app.add_middleware(
 
 # Register search routes
 app.include_router(search.router, prefix="/api", tags=["search"])
-app.include_router(seller_submission.router, prefix="", tags=["Reviews"])
 app.include_router(seller_submission.router, prefix="/auction")
 app.include_router(card_verification.router, prefix="/verification")
 
