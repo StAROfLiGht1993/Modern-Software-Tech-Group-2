@@ -4,6 +4,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes import search, seller_submission, card_verification
+import logging
+
+# Configure logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 app = FastAPI()
 
@@ -24,3 +29,7 @@ app.include_router(card_verification.router, prefix="/verification")
 @app.get("/")
 def read_root():
     return {"message": "Welcome to the Pokémon Card Auction Platform"}
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="127.0.0.1", port=8000)
