@@ -22,7 +22,7 @@ class Profile(Base):
     PhoneNumber = Column(Integer, nullable=True, default=0)  # PDPA
 
     # Relationship with Cards
-    cards = relationship("Card", back_populates="cards", cascade="all, delete-orphan")
+    cards = relationship("Card", back_populates="profiles", cascade="all, delete-orphan")
 
 
 class ProfileBase(BaseModel):

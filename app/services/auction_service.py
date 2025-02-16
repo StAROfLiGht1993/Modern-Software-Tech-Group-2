@@ -8,7 +8,6 @@ from sqlalchemy.orm import Session
 from app.models.card import Card, CardInfo
 from app.models.profile import Profile
 from app.models.auction import Auction, AuctionInfo
-from profile_service import ProfileService
 from datetime import datetime
 from fastapi import HTTPException
 
@@ -92,7 +91,7 @@ class AuctionService:
         Add a new Auction
         """
         # Check if Card Exists
-        card = self.db.query(Card).filter(Card.CardID == card_id).first()
+        card = self.db.query(Card).filter(Card.CardID == card_id,).first()
         if not card:
             return None
         new_auction = Auction(

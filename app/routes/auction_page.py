@@ -3,9 +3,9 @@ from fastapi.responses import HTMLResponse
 from app.services.auction_service import AuctionService
 from app.services.profile_service import ProfileService
 from sqlalchemy.orm import Session
-from app.database import SessionLocal
 from app.models.auction import Auction, AuctionInfo
 from app.models.card import Card
+from app.db.db import SessionLocal
 from pydantic import BaseModel
 from app.models.auction import AuctionInfo
 from typing import Dict
