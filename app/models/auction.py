@@ -46,3 +46,4 @@ class AuctionResponse(AuctionBase):
     CardID: int
     SellerID: int
     MinimumIncrement: float
+    
