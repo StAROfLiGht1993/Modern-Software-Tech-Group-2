@@ -60,14 +60,14 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Register routes
-app.include_router(search.router, prefix="/api", tags=["search"])
-app.include_router(seller_submission.router, prefix="/auction")
-app.include_router(card_verification.router, prefix="/verification")
 app.include_router(auth.router, prefix="", tags=["Authentication"])
+app.include_router(seller_submission.router, prefix="/auction", tags=["Submission"])
+app.include_router(card_verification.router, prefix="/verification", tags=["Verification"])
+app.include_router(search.router, prefix="/api", tags=["Search"])
 
-@app.get("/")
-def read_root():
-    return {"message": "Welcome to the Pokémon Card Auction Platform"}
+# @app.get("/")
+# def read_root():
+#     return {"message": "Welcome to the Pokémon Card Auction Platform"}
 
 if __name__ == "__main__":
     import uvicorn
