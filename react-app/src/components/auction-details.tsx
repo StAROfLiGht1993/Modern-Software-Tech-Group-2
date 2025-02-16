@@ -1,81 +1,117 @@
-import { useState, useEffect } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { Auction, fetchAuctions, placeBid } from "../services/auction-service";
+import React, { useEffect, useState } from "react";
+import { useParams } from "react-router-dom";
+import axios from "axios";
 
-const AuctionDetails: React.FC = () => {
-  const { id } = useParams<{ id: string }>(); // Get auction ID from URL
-  const navigate = useNavigate();
-  const [auction, setAuction] = useState<Auction | null>(null);
-  const [bidAmount, setBidAmount] = useState<string>("");
-  const [message, setMessage] = useState<string>("");
-  const userId = 123; // ✅ Assume logged-in user ID (replace with actual logic)
+// Define the Auction details type
+interface AuctionDetail {
+    AuctionID: number;
+    title: string;
+    Status: string;
+    HighestBid: number;
+    CardName: string;
+    ImageURL: string;
+}
 
-  useEffect(() => {
-    loadAuction();
-  }, []);
+// Define the bid request type
+interface BidRequest {
+    auction_id: number;
+    user_id: number;
+    HighestBid: number;
+}
 
-  const loadAuction = async () => {
-    const { auctions } = await fetchAuctions();
-    const selectedAuction = auctions.find(a => a.AuctionID === Number(id));
-    setAuction(selectedAuction || null);
-  };
+const BiddingPage: React.FC = () => {
+    const { auctionID } = useParams<{ auctionID: string }>(); // Get auction ID from URL
+    const [auction, setAuction] = useState<AuctionDetail | null>(null);
+    const [bidAmount, setBidAmount] = useState<string>("");
+    const [message, setMessage] = useState<string>("");
 
-  const handleBid = async () => {
-    const amount = parseFloat(bidAmount);
-    if (isNaN(amount) || amount <= 0) {
-      setMessage("Invalid bid amount.");
-      return;
-    }
+    useEffect(() => {
+        fetchAuctionDetails();
+    }, []);
 
-    if (auction && amount > auction.HighestBid) {
-      const bidResponse = await placeBid({
-        AuctionID: auction.AuctionID,
-        UserID: userId, // ✅ Send UserID to backend
-        BidAmount: amount
-      });
+    const fetchAuctionDetails = async () => {
+        try {
+            const response = await axios.get<AuctionDetail>(
+                `http://127.0.0.1:8000/auction-details/${auctionID}`
+            );
+            setAuction(response.data);
+        } catch (error) {
+            console.error("Error fetching auction details:", error);
+        }
+    };
 
-      if (bidResponse) {
-        setMessage(`Bid placed successfully! New highest bid: $${bidResponse.new_highest_bid}`);
-        loadAuction(); // Reload auction data after bid
-      } else {
-        setMessage("Failed to place bid. Ensure bid is higher than current highest bid.");
-      }
-    } else {
-      setMessage("Bid must be higher than current highest bid.");
-    }
-  };
+    const handleBidChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        setBidAmount(event.target.value);
+    };
 
-  return (
-    <div className="max-w-2xl mx-auto bg-white p-6 shadow-lg rounded-lg">
-      <button onClick={() => navigate("/")} className="bg-gray-300 px-4 py-2 rounded mb-4">← Back</button>
-      {auction ? (
-        <>
-          <h2 className="text-2xl font-bold">{auction.title}</h2>
-          <p><strong>Highest Bid:</strong> ${auction.HighestBid.toFixed(2)}</p>
-          <p><strong>Status:</strong> {auction.Status}</p>
-          <p><strong>Ends:</strong> {new Date(auction.EndTime).toLocaleString()}</p>
-          <div className="mt-4">
-            <input
-              type="number"
-              min={auction.HighestBid + 1}
-              value={bidAmount}
-              onChange={(e) => setBidAmount(e.target.value)}
-              className="p-2 border rounded w-32"
-            />
-            <button
-              onClick={handleBid}
-              className="ml-2 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-            >
-              Place Bid
-            </button>
-          </div>
-          {message && <p className="mt-2 text-green-500">{message}</p>}
-        </>
-      ) : (
-        <p className="text-red-500">Auction not found.</p>
-      )}
-    </div>
-  );
+    const submitBid = async () => {
+        if (!auction) return;
+
+        const bidValue = parseFloat(bidAmount);
+        if (isNaN(bidValue) || bidValue <= auction.HighestBid) {
+            setMessage("Bid must be higher than the current highest bid!");
+            return;
+        }
+
+        try {
+            const bidData: BidRequest = {
+                auction_id: auction.AuctionID,
+                user_id: 1,  // Temporary hardcoded user ID, replace with real user session
+                HighestBid: bidValue
+            };
+
+            const response = await axios.post("http://127.0.0.1:8000/place-bid", bidData);
+
+            setMessage(response.data.message);
+            setAuction((prev) => (prev ? { ...prev, HighestBid: bidValue } : prev)); // Update highest bid
+        } catch (error) {
+            console.error("Error placing bid:", error);
+            setMessage("Failed to place bid. Please try again.");
+        }
+    };
+
+    if (!auction) return <h2>Loading auction details...</h2>;
+
+    return (
+        <div style={{ padding: "20px", textAlign: "center" }}>
+            <h2>Bidding for {auction.title}</h2>
+            
+            {/* Auction Image */}
+            <img src={auction.ImageURL} alt={auction.CardName} width="300px" />
+
+            {/* Auction Details */}
+            <div style={{
+                border: "1px solid #ddd",
+                padding: "15px",
+                marginTop: "15px",
+                backgroundColor: "#f9f9f9",
+                borderRadius: "5px"
+            }}>
+                <p><strong>Auction ID:</strong> {auction.AuctionID}</p>
+                <p><strong>Status:</strong> {auction.Status}</p>
+                <p><strong>Highest Bid:</strong> ${auction.HighestBid}</p>
+                <p><strong>Card Name:</strong> {auction.CardName}</p>
+            </div>
+
+            {/* Bidding Input */}
+            <div style={{ marginTop: "15px" }}>
+                <input
+                    type="number"
+                    placeholder="Enter your bid"
+                    value={bidAmount}
+                    onChange={handleBidChange}
+                    style={{ padding: "10px", width: "150px" }}
+                />
+                <button onClick={submitBid} style={{ marginLeft: "10px", padding: "10px 20px" }}>
+                    Place Bid
+                </button>
+            </div>
+
+            {/* Bid Status Message */}
+            {message && <p style={{ color: "green", marginTop: "10px" }}>{message}</p>}
+        </div>
+    );
 };
 
-export default AuctionDetails;
+export default BiddingPage;
+
