@@ -42,6 +42,8 @@ os.makedirs(IMAGE_DIR, exist_ok=True)
 def create_auction(
     file: UploadFile = File(...),
     card_name: str = Form(...),
+    card_quality: str = Form(...),
+    is_validated: bool = Form(...),
     starting_bid: float = Form(...),
     minimum_increment: float = Form(...),
     auction_duration: float = Form(...),
@@ -81,7 +83,10 @@ def create_auction(
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     '''Create card record'''
-    card = Card(CardName=card_name)
+    card = Card(CardName=card_name,
+                CardQuality=card_quality,
+                OwnerID=1, # Dummy owner ID for now
+                IsValidated=is_validated)
     db.add(card)
     db.commit()
     db.refresh(card)
@@ -93,7 +98,6 @@ def create_auction(
     auction_data = AuctionInfo(
         CardID=card.CardID,
         CardName=card_name,
-        SellerID=1, # Dummy seller ID for now
         MinimumIncrement=minimum_increment,
         EndTime=end_time,
         Status="In Progress", # Dummy status for now
@@ -116,18 +120,3 @@ def create_auction(
         "ImageURL": auction_data.ImageURL
     }
 
-@router.get("/sell")
-def get_form():
-    """Serve the seller submission HTML page as a static file."""
-    html_file_path = os.path.join(TEMPLATES_DIR, "seller_submission.html")
-
-    # Debug print to verify file path
-    logger.debug(f"Checking template file at: {html_file_path}")
-    logger.debug(f"File exists? -> {os.path.exists(html_file_path)}")
-
-    # Ensure the file exists before serving
-    if not os.path.exists(html_file_path):
-        logger.error("Template file not found!")
-        raise HTTPException(status_code=404, detail="Template file not found!")
-
-    return FileResponse(html_file_path, media_type="text/html")

@@ -33,7 +33,6 @@ class AuctionBase(BaseModel):
     AuctionID: Optional[int] = None  # Auto-incremented by the database
     CardID: Optional[int] = None     # Auto-incremented by the database
     CardName: str = Field(..., min_length=3, max_length=100, description="Card name must be between 3 to 100 characters.")
-    SellerID: int
     MinimumIncrement: float = Field(..., gt=0, description="The minimum increment should be greater than 0.")
     EndTime: datetime = Field(..., description="End time must be a valid datetime.")
     Status: str
