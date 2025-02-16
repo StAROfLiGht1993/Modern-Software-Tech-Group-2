@@ -7,7 +7,7 @@ Auction Services, run database queries for specific manipulations
 from sqlalchemy.orm import Session
 from app.models.card import Card, CardInfo
 from app.models.profile import Profile
-from app.models.auction import Auction, AuctionInfo
+from app.models.auction import Auction, AuctionInfo, AuctionBid
 from datetime import datetime
 from fastapi import HTTPException
 
@@ -25,47 +25,47 @@ class AuctionService:
         """
         current_date = datetime.today().date() # assume endtime is a date
         offset = (page - 1) * page_size  # Pagination offset
-        return (
+        query_result = (
             self.db.query(            
-            Auction.AuctionID,
-            Auction.CardID,
-            Auction.title,
-            Auction.Status,
-            Auction.HighestBid,
-            Card.IsValidated,
-            Card.CardName,
-            Card.CardQuality,
-            Auction.ImageURL  # Ensure this is the correct field in `Card)
+                Auction.AuctionID,
+                Auction.CardID,
+                Auction.Status,
+                Auction.HighestBid,
+                Card.IsValidated,
+                Card.CardName,
+                Card.CardQuality,
+                Auction.ImageURL  # Ensure this is the correct field in `Card)
             )
-        .join(Card, Auction.CardID == Card.CardID)  # Join auctions with card details
-        .filter(Auction.EndTime >= current_date)  # Only include auctions that are not expired
-        .order_by(Auction.EndTime)  # Sort by earliest expiration
-        .offset(offset)
-        .limit(page_size)
-        .all()
-    )
+            .join(Card, Auction.CardID == Card.CardID)  # Join auctions with card details
+            .filter(Auction.EndTime >= current_date)  # Only include auctions that are not expired
+            .order_by(Auction.EndTime)  # Sort by earliest expiration
+            .offset(offset)
+            .limit(page_size)
+            .all()
+        )
+        return [dict(zip(["AuctionID", "CardID", "Status", "HighestBid", "IsValidated", "CardName", "CardQuality", "ImageURL"], row)) for row in query_result]
 
     def get_auctions_details(self, auction_id: int):
         """
         Get auctions by auction id for bidding
         """
-        auction_indiv = ( 
+        query_result = ( 
             self.db.query(            
             Auction.AuctionID,
             Auction.CardID,
-            Auction.title,
             Auction.Status,
             Auction.HighestBid,
             Card.IsValidated,
             Card.CardName,
             Card.CardQuality,
-            Card.CardDescription,
             Auction.ImageURL  # Ensure this is the correct field in `Card)
             )
             .join(Card, Auction.CardID == Card.CardID)  # Join auctions with card details
             .filter(Auction.AuctionID == auction_id) 
             .first()
         )
+        print(query_result)
+        auction_indiv = dict(zip(["AuctionID", "CardID", "Status", "HighestBid", "IsValidated", "CardName", "CardQuality", "ImageURL"], query_result))
         if not auction_indiv:
             raise HTTPException(status_code=404, detail="Auction not found")
         return auction_indiv
@@ -123,12 +123,12 @@ class AuctionService:
         self.db.refresh(auction)
         return auction
 
-    def bid_auction(self, auction_id: int, user_id: int, bid_info: AuctionInfo):
+    def bid_auction(self,user_id: int, bid_info: AuctionBid):
         """
         Make a new bid in an auction
         """
         # Check if auction exists
-        auction = self.get_auction_by_id(auction_id)
+        auction = self.get_auction_by_id(bid_info.AuctionID)
         if not auction:
             return None  # Auction Does not exist
         # # Check if user exists
@@ -139,11 +139,11 @@ class AuctionService:
         #     return None  # Return 404 profile not found
 
         # Check if current bid is higher than latest bid
-        if auction.HighestBid >= bid_info.HighestBid:
+        if auction.HighestBid + auction.MinimumIncrement > bid_info.BidAmount:
             return None  # Current bid not high enough
         else:
-            for key, value in bid_info.model_dump().items():
-                setattr(auction, key, value)
+            setattr(auction, "HighestBid", bid_info.BidAmount)
+            setattr(auction, "HighestBidderID", user_id)
             self.db.commit()
             self.db.refresh(auction)
             return auction
