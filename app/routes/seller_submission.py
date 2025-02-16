@@ -95,7 +95,7 @@ def create_auction(
     end_time = datetime.now() + timedelta(hours=auction_duration)
 
     '''Create auction record'''
-    auction_data = AuctionInfo(
+    auction_data = Auction(
         CardID=card.CardID,
         CardName=card_name,
         SellerID=card.OwnerID,
@@ -107,11 +107,14 @@ def create_auction(
         ImageURL=f"{file_path}"
     )
 
-    service.add_auction(card.CardID, auction_data)  # Ensure auction_data is passed correctly
+    db.add(auction_data)
+    db.commit()
+    db.refresh(auction_data)
     
     return {
         "AuctionID": auction_data.AuctionID,
         "CardID": auction_data.CardID,
+        "CardName": auction_data.CardName,
         "SellerID": auction_data.SellerID,
         "MinimumIncrement": auction_data.MinimumIncrement,
         "EndTime": auction_data.EndTime,
@@ -120,4 +123,3 @@ def create_auction(
         "HighestBid": auction_data.HighestBid,
         "ImageURL": auction_data.ImageURL
     }
-

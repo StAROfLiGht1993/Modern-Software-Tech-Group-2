@@ -6,7 +6,7 @@ Card Table - Will contain all the card data
 
 from sqlalchemy import Column, Integer, VARCHAR, String, Boolean, ForeignKey
 from app.db.db import Base
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.orm import relationship
 
 
@@ -27,8 +27,8 @@ class Card(Base):
 
 
 class CardBase(BaseModel):
-    CardQuality: str
-    CardName: str
+    CardQuality: str = Field(..., min_length=3, max_length=10, description="Card quality must be between 3 to 10 characters.")
+    CardName: str = Field(..., min_length=3, max_length=100, description="Card name must be between 3 to 100 characters.")
     IsValidated: bool
 
 
