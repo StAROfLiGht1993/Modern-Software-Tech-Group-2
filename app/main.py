@@ -3,7 +3,8 @@
 # TODO Shift the Running of the Application here
 
 from fastapi import FastAPI, HTTPException, Request
-from app.routes import seller_submission, card_verification, auth
+from fastapi.middleware.cors import CORSMiddleware
+from app.routes import seller_submission, card_verification, auth, search
 import logging
 from app.exceptions import ServiceException
 from fastapi.security import HTTPBearer
@@ -51,7 +52,17 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 
-# Include routes
+# Enable CORS
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change this to specific domains in production
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Register search routes
+app.include_router(search.router, prefix="/api", tags=["search"])
 app.include_router(seller_submission.router, prefix="/auction")
 app.include_router(card_verification.router, prefix="/verification")
 

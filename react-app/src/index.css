@@ -1,0 +1,56 @@
+img {
+    max-width: 15%;
+    height: 50%;
+    margin: 0 auto;
+    display: block;
+  }
+
+body {
+    background-color: #ffffff; /* Tailwind's blue-800 color */
+    font-family: 'Calibri', sans-serif;
+    font-size: 1.2rem;  
+    
+}
+/* Custom bold text */
+.bold-text {
+    font-weight: bold;
+}
+
+h1 {
+    font-size: 2.5rem;
+    font-weight: bold;
+    text-align: center;
+}
+p {
+    font-size: 1.5rem;
+    text-align: center;
+    color: #f10606
+}
+button {
+    border-radius: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+    border: none;
+    background-color: #ffffff;
+}
+button:hover {
+    background-color: #fca400b6;
+    border-radius: 6px;
+}
+div {
+    margin: 0 auto;
+    display: block;
+}
+.search-bar {
+    margin: 0 auto;
+    display: block;
+    width: 50%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #fca400b6;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+

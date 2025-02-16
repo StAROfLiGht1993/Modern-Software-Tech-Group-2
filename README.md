@@ -1,3 +1,5 @@
+# Modern-Software-Tech-Group-2
+Our Pokemon Group project
 # Pokemon Auction App
 
 This app was created for module IS631 Modern Software Solution. This app is similar to Carousell, serving as a online solution for buying/selling cards. Our innovation is through the use of a PSA grader to pre-grade the cards to ensure that cards being sold are genuine, and the buyer does not get scammed.
