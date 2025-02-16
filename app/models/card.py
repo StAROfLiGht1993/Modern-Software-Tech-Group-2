@@ -27,7 +27,9 @@ class Card(Base):
 
 
 class CardBase(BaseModel):
-    review: str
+    CardQuality: str
+    CardName: str
+    IsValidated: bool
 
 
 class CardInfo(CardBase):

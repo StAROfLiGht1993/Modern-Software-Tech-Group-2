@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from fastapi import APIRouter, Form, File, UploadFile, HTTPException, status, Depends
-from app.models.auction import Auction, AuctionInfo, AuctionResponse
+from app.models.auction import Auction, AuctionResponse, AuctionInfo
 from app.models.card import Card
 from app.services.auction_service import AuctionService
 from app.dependencies.services import get_auction_service
@@ -98,6 +98,7 @@ def create_auction(
     auction_data = AuctionInfo(
         CardID=card.CardID,
         CardName=card_name,
+        SellerID=card.OwnerID,
         MinimumIncrement=minimum_increment,
         EndTime=end_time,
         Status="In Progress", # Dummy status for now
@@ -106,7 +107,7 @@ def create_auction(
         ImageURL=f"{file_path}"
     )
 
-    service.add_auction(auction_data)
+    service.add_auction(card.CardID, auction_data)  # Ensure auction_data is passed correctly
     
     return {
         "AuctionID": auction_data.AuctionID,
