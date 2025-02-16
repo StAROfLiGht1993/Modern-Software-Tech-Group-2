@@ -288,6 +288,29 @@ class CognitoService:
             raise ServiceException(status_code=500, detail=f"Confirmation failed: {str(e)}")
 # ------------------------- End of update -----------------------------------------------------------------------------
 
+# ------------------------- Update the resend_confirmation_code method for resending confirmation code ------------------------
+    # add resend_confirmation_code method    
+    def resend_confirmation_code(self, email: str):
+        """
+        Resend the confirmation code to the user's email.
+        """
+        try:
+            self.client.resend_confirmation_code(
+                ClientId=self.client_id,
+                Username=email,
+                SecretHash=self.calculate_secret_hash(email)
+            )
+            return "Confirmation code resent successfully."
+        except self.client.exceptions.UserNotFoundException:
+            raise ServiceException(status_code=404, detail="User not found.")
+        except self.client.exceptions.LimitExceededException:
+            raise ServiceException(status_code=429, detail="Request limit exceeded. Try again later.")
+        except self.client.exceptions.TooManyRequestsException:
+            raise ServiceException(status_code=429, detail="Too many requests. Try again later.")
+        except Exception as e:
+            raise ServiceException(status_code=500, detail=f"Failed to resend confirmation code: {str(e)}")
+
+
 class RoleChecker:
     def __init__(self, allowed_role: str):
         self.allowed_role = allowed_role
@@ -300,3 +323,4 @@ class RoleChecker:
         claims = cognito_service.validate_token(auth)
         cognito_service.check_user_role(claims, self.allowed_role)
         return claims
+    
