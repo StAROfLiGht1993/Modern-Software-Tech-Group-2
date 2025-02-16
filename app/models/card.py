@@ -22,7 +22,8 @@ class Card(Base):
     IsValidated = Column(Boolean, nullable=False, default=False)
 
     profiles = relationship("Profile", back_populates="cards")
-    auctions = relationship("Auction", back_populates="card") # We dont want to delete previous auctions
+    card_id_auctions = relationship("Auction", back_populates="card_id", foreign_keys="[Auction.CardID]") # Reference the card ID
+    seller_id_auction = relationship("Auction", back_populates="seller_id", foreign_keys="[Auction.SellerID]") # Reference to the seller
 
 
 class CardBase(BaseModel):

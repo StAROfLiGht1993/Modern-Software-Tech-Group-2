@@ -26,6 +26,9 @@ class Auction(Base):
     HighestBid = Column(Float, nullable=False)
     ImageURL = Column(VARCHAR, nullable=False)
 
+    card_id = relationship("Card", foreign_keys=[CardID], back_populates="card_id_auctions")
+    seller_id = relationship("Card", foreign_keys=[SellerID], back_populates="seller_id_auction")
+
 class AuctionBase(BaseModel):
     AuctionID: Optional[int] = None  # Auto-incremented by the database
     CardID: Optional[int] = None     # Auto-incremented by the database

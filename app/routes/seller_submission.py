@@ -77,6 +77,7 @@ def create_auction(
         logger.debug(f"File saved successfully to: {file_path}")
     except Exception as e:
         logger.error(f"Failed to save file: {str(e)}")
+        print("500 was raised")
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
     '''Create card record'''

@@ -44,7 +44,7 @@ class AuctionService:
         Add a new Auction
         """
         # Check if Card Exists
-        card = self.db.query(Card).filter(Card.CardID == card_id).first()
+        card = self.db.query(Card).filter(Card.CardID == card_id,).first()
         if not card:
             return None
         new_auction = Auction(
