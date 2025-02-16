@@ -4,3 +4,9 @@ requests==2.32.3
 SQLAlchemy==2.0.36
 alembic==1.14.0
 pypdf==5.1.0
+numpy
+pytesseract
+opencv-python
+python-multipart
+boto3==1.28.13
+python-jose==3.3.0
