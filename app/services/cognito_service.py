@@ -17,12 +17,17 @@ CognitoUserRole = os.getenv("COGNITO_USER_ROLE", "Users")
 CognitoAdminRole = os.getenv("COGNITO_ADMIN_ROLE", "Admins")
 bearer_scheme = HTTPBearer(auto_error=False)
 
+print("COGNITO_REGION:", os.getenv("COGNITO_REGION"))
+print("COGNITO_USER_POOL_ID:", os.getenv("COGNITO_USER_POOL_ID1"))
+print("COGNITO_CLIENT_ID:", os.getenv("COGNITO_CLIENT_ID1"))
+print("COGNITO_CLIENT_SECRET:", os.getenv("COGNITO_CLIENT_SECRET1"))
+
 class CognitoService:
     def __init__(self):
         self.region = os.getenv("COGNITO_REGION")
-        self.user_pool_id = os.getenv("COGNITO_USER_POOL_ID")
-        self.client_id = os.getenv("COGNITO_CLIENT_ID")
-        self.client_secret = os.getenv("COGNITO_CLIENT_SECRET")
+        self.user_pool_id = os.getenv("COGNITO_USER_POOL_ID1")
+        self.client_id = os.getenv("COGNITO_CLIENT_ID1")
+        self.client_secret = os.getenv("COGNITO_CLIENT_SECRET1")
 
         # JSON Web Key Set (JWKS) is a collection of public cryptographic keys used to verify JSON Web Tokens
         self.jwks_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
@@ -85,23 +90,61 @@ class CognitoService:
         ).digest()
         return base64.b64encode(dig).decode()
 
-    def authenticate_user(self, username: str, password: str):
-        """
-        Authenticate a user with Cognito using their username and password.
+# ------------------------- Update the authenticate_user method for login -------------------------
+    # def authenticate_user(self, username: str, password: str):
+    #     """
+    #     Authenticate a user with Cognito using their username and password.
 
-        :param username: Username of the user.
+    #     :param username: Username of the user.
+    #     :param password: Password of the user.
+    #     :return: Dictionary containing tokens if authentication is successful.
+    #     """
+    #     try:
+    #         # Calculate the SECRET_HASH
+    #         secret_hash = self.calculate_secret_hash(username)
+
+    #         # Initiate the authentication
+    #         response = self.client.initiate_auth(
+    #             AuthFlow="USER_PASSWORD_AUTH",
+    #             AuthParameters={
+    #                 "USERNAME": username,
+    #                 "PASSWORD": password,
+    #                 "SECRET_HASH": secret_hash
+    #             },
+    #             ClientId=self.client_id
+    #         )
+
+    #         return {
+    #             "id_token": response["AuthenticationResult"]["IdToken"],
+    #             "access_token": response["AuthenticationResult"]["AccessToken"],
+    #             "refresh_token": response["AuthenticationResult"]["RefreshToken"]
+    #         }
+
+    #     except self.client.exceptions.NotAuthorizedException: #based on response documentation for initiate_auth errors
+    #         raise ServiceException(status_code=401, detail="Invalid username or password.") #create ServiceException object with status code 401 and detail message "Invalid username or password."
+    #     except self.client.exceptions.UserNotConfirmedException:
+    #         raise ServiceException(status_code=403, detail="User account not confirmed.")
+    #     except Exception as e:
+    #         raise ServiceException(status_code=500, detail=f"Authentication failed: {str(e)}")
+
+    # update user login to use only email
+    def authenticate_user(self, email: str, password: str):
+        """
+        Authenticate a user with Cognito using their email and password.
+
+        :param username: Email of the user.
         :param password: Password of the user.
         :return: Dictionary containing tokens if authentication is successful.
         """
         try:
             # Calculate the SECRET_HASH
-            secret_hash = self.calculate_secret_hash(username)
+            secret_hash = self.calculate_secret_hash(email)
 
             # Initiate the authentication
             response = self.client.initiate_auth(
                 AuthFlow="USER_PASSWORD_AUTH",
                 AuthParameters={
-                    "USERNAME": username,
+                    "USERNAME": email,
                     "PASSWORD": password,
                     "SECRET_HASH": secret_hash
                 },
@@ -115,12 +158,14 @@ class CognitoService:
             }
 
         except self.client.exceptions.NotAuthorizedException: #based on response documentation for initiate_auth errors
-            raise ServiceException(status_code=401, detail="Invalid username or password.") #create ServiceException object with status code 401 and detail message "Invalid username or password."
+            raise ServiceException(status_code=401, detail="Invalid email or password.") #create ServiceException object with status code 401 and detail message "Invalid username or password."
         except self.client.exceptions.UserNotConfirmedException:
             raise ServiceException(status_code=403, detail="User account not confirmed.")
         except Exception as e:
             raise ServiceException(status_code=500, detail=f"Authentication failed: {str(e)}")
-        
+
+# -------------------------- End of update -----------------------------------------------------------------------------
+
     def check_user_role(self, claims, required_role: str):
         """
         Check if the token contains the required role.
@@ -133,18 +178,48 @@ class CognitoService:
         except Exception as e:
             raise ServiceException(status_code=403, detail=f"Invalid token or permissions: {str(e)}")
 
-    def register_user(self, username: str, email: str, password: str):
+# ------------------------- Update the register_user method for registration 
+    # def register_user(self, username: str, email: str, password: str):
+    #     """
+    #     Register a new user with a distinct username, and store the user's email in Cognito.
+    #     """
+    #     try:
+    #         # Calculate the SECRET_HASH if your app client has a client secret
+    #         secret_hash = self.calculate_secret_hash(username)
+
+    #         response = self.client.sign_up(
+    #             ClientId=self.client_id,
+    #             SecretHash=secret_hash,
+    #             Username=username,      # <--- Distinct username
+    #             Password=password,
+    #             UserAttributes=[
+    #                 {
+    #                     'Name': 'email',
+    #                     'Value': email       # <--- Storing user's email as an attribute
+    #                 }
+    #             ]
+    #         )
+
+    #         return response
+
+    #     except self.client.exceptions.UsernameExistsException:
+    #         raise ServiceException(status_code=400, detail="User already exists.")
+    #     except Exception as e:
+    #         raise ServiceException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+
+    def register_user(self, email: str, password: str):
         """
-        Register a new user with a distinct username, and store the user's email in Cognito.
+        Register a new user with a email, generate a random username in backend in cognito and store the user's email in Cognito.
         """
         try:
             # Calculate the SECRET_HASH if your app client has a client secret
-            secret_hash = self.calculate_secret_hash(username)
+            secret_hash = self.calculate_secret_hash(email)
 
             response = self.client.sign_up(
                 ClientId=self.client_id,
                 SecretHash=secret_hash,
-                Username=username,      # <--- Distinct username
+                Username=email,      # <--- uppdate to email
                 Password=password,
                 UserAttributes=[
                     {
@@ -160,9 +235,35 @@ class CognitoService:
             raise ServiceException(status_code=400, detail="User already exists.")
         except Exception as e:
             raise ServiceException(status_code=500, detail=f"Registration failed: {str(e)}")
+ 
+#  --------------------------------- End of update ---------------------------------
     
-    
-    def confirm_user(self, username: str, confirmation_code: str):
+# ------------------------- Update the confirm_user method for email confirmation -------------------------
+    # def confirm_user(self, username: str, confirmation_code: str):
+    #     """
+    #     Confirm the user's signup with the code they received by email
+    #     """
+    #     try:
+    #         # First confirm the sign-up
+    #         self.client.confirm_sign_up(
+    #             ClientId=self.client_id,
+    #             Username=username,
+    #             ConfirmationCode=confirmation_code,
+    #             SecretHash=self.calculate_secret_hash(username)
+    #         )
+
+    #         return "User confirmed successfully."
+        
+    #     except self.client.exceptions.CodeMismatchException:
+    #         raise ServiceException(status_code=400, detail="Invalid confirmation code.")
+    #     except self.client.exceptions.ExpiredCodeException:
+    #         raise ServiceException(status_code=400, detail="Confirmation code has expired.")
+    #     except self.client.exceptions.UserNotFoundException:
+    #         raise ServiceException(status_code=404, detail="User not found.")
+    #     except Exception as e:
+    #         raise ServiceException(status_code=500, detail=f"Confirmation failed: {str(e)}")
+
+    def confirm_user(self, email: str, confirmation_code: str):
         """
         Confirm the user's signup with the code they received by email
         """
@@ -170,9 +271,9 @@ class CognitoService:
             # First confirm the sign-up
             self.client.confirm_sign_up(
                 ClientId=self.client_id,
-                Username=username,
+                Username=email,
                 ConfirmationCode=confirmation_code,
-                SecretHash=self.calculate_secret_hash(username)
+                SecretHash=self.calculate_secret_hash(email)
             )
 
             return "User confirmed successfully."
@@ -185,6 +286,7 @@ class CognitoService:
             raise ServiceException(status_code=404, detail="User not found.")
         except Exception as e:
             raise ServiceException(status_code=500, detail=f"Confirmation failed: {str(e)}")
+# ------------------------- End of update -----------------------------------------------------------------------------
 
 class RoleChecker:
     def __init__(self, allowed_role: str):
