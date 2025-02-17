@@ -28,6 +28,8 @@ class CognitoService:
         self.user_pool_id = os.getenv("COGNITO_USER_POOL_ID1")
         self.client_id = os.getenv("COGNITO_CLIENT_ID1")
         self.client_secret = os.getenv("COGNITO_CLIENT_SECRET1")
+        self.aws_access_key = os.getenv("AWS_ACCESS_KEY")
+        self.aws_secret_key = os.getenv("AWS_SECRET_KEY")
 
         # JSON Web Key Set (JWKS) is a collection of public cryptographic keys used to verify JSON Web Tokens
         self.jwks_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
@@ -35,7 +37,7 @@ class CognitoService:
         self.bearer = bearer_scheme
 
         # Initialize Boto3 Cognito client
-        self.client = boto3.client("cognito-idp", region_name=self.region)
+        self.client = boto3.client("cognito-idp", region_name=self.region, aws_access_key_id=self.aws_access_key, aws_secret_access_key=self.aws_secret_key)
 
     def _get_cognito_jwks(self):
         """
@@ -309,6 +311,35 @@ class CognitoService:
             raise ServiceException(status_code=429, detail="Too many requests. Try again later.")
         except Exception as e:
             raise ServiceException(status_code=500, detail=f"Failed to resend confirmation code: {str(e)}")
+# ------------------------- End of update -----------------------------------------------------------------------------
+
+    #add method to list all users
+    def list_users(self):
+        """
+        List all users in the Cognito user pool.
+        """
+        try:
+            users = []
+            response = self.client.list_users(
+                UserPoolId=self.user_pool_id
+            )
+            users.extend(response['Users'])
+
+            # Handle pagination
+            while 'PaginationToken' in response:
+                response = self.client.list_users(
+                    UserPoolId=self.user_pool_id,
+                    PaginationToken=response['PaginationToken']
+                )
+                users.extend(response['Users'])
+
+            return users
+        except self.client.exceptions.TooManyRequestsException:
+            raise ServiceException(status_code=429, detail="Request limit exceeded. Try again later.")
+        except self.client.exceptions.NotAuthorizedException:
+            raise ServiceException(status_code=403, detail="Insufficient permissions.")
+        except Exception as e:
+            raise ServiceException(status_code=500, detail=f"Failed to list users: {str(e)}")
 
 
 class RoleChecker:

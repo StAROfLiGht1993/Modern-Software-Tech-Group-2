@@ -138,3 +138,15 @@ def resend_confirmation_code(email: str):
         return {"message": "Confirmation code resent successfully."}
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
+    
+# add new endpoint for list users
+@router.get("/get-all-users")
+def list_users():
+    """
+    List all users in the user pool.
+    """
+    try:
+        users = cognito_service.list_users()
+        return {"users": users}
+    except ServiceException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
