@@ -65,7 +65,7 @@ def register(email: str, password: str, db: Session = Depends(get_db)):
             NumberOfRating=0, # Default 0 upon creation
             CurrentRating=0.0, # Default 0 upon creation
             PhoneNumber=None
-            # CognitoUserID=user_sub
+            CognitoUserID=user_sub
         )
 
         db.add(profile)
