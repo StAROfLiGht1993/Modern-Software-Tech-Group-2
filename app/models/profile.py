@@ -21,8 +21,9 @@ class Profile(Base):
     CurrentRating = Column(Integer, nullable=False, default=0)
     PhoneNumber = Column(Integer, nullable=True, default=0)  # PDPA
 
-    # Relationship with Cards
+    # Relationship with Cards and Notifications
     cards = relationship("Card", back_populates="profiles", cascade="all, delete-orphan")
+    notifications = relationship('Notification', back_populates='user', cascade="all, delete-orphan")
 
 
 class ProfileBase(BaseModel):

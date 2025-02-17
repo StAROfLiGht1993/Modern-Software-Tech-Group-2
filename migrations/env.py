@@ -7,6 +7,7 @@ from app.db.db import Base
 from app.models.auction import Auction
 from app.models.card import Card
 from app.models.profile import Profile
+from app.models.notifications import Notification
 
 from alembic import context
 
