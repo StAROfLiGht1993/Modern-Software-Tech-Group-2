@@ -16,13 +16,13 @@ class Profile(Base):
     UserID = Column(Integer, primary_key=True, index=True)
     Username = Column(VARCHAR, nullable=False, unique=True)
     Password = Column(VARCHAR, nullable=False)
-    Email = Column(VARCHAR, nullable=True)  # PDPA
+    Email = Column(VARCHAR, nullable=True)  # PDPA # Shouldn't email be primary key now that authentication uses email as username, only one account per email
     NumberOfRating = Column(Integer, nullable=False, default=0)
     CurrentRating = Column(Integer, nullable=False, default=0)
     PhoneNumber = Column(Integer, nullable=True, default=0)  # PDPA
 
     # Relationship with Cards
-    cards = relationship("Card", back_populates="cards", cascade="all, delete-orphan")
+    cards = relationship("Card", back_populates="profiles", cascade="all, delete-orphan")
 
 
 class ProfileBase(BaseModel):
