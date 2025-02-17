@@ -10,9 +10,8 @@ from app.models.profile import Profile
 from app.models.auction import Auction, AuctionInfo, AuctionBid
 from app.models.notifications import Notification
 from app.services.profile_service import ProfileService
-from datetime import datetime
-from fastapi import HTTPException
-from app.db.db import get_db
+from datetime import datetime, timezone
+from fastapi import HTTPException, BackgroundTasks
 
 from typing import Union
 
@@ -194,3 +193,45 @@ class AuctionService:
             )
 
         return auction_list
+
+    def end_expired_auctions(self):
+        """Automatically ends auctions that have expired."""
+        now = datetime.now(timezone.utc)  # Use timezone-aware datetime
+        expired_auctions = self.db.query(Auction).filter(
+            Auction.Status == "In Progress",
+            Auction.EndTime <= now
+        ).all()
+
+        for auction in expired_auctions:
+            auction.Status = "Ended"
+            self.db.commit()
+
+            # Notify the highest bidder
+            if auction.HighestBidderID:
+                message = f"Congratulations! You have won the auction for {auction.CardID} with a bid of ${auction.HighestBid}."
+                notification = Notification(
+                    BidderID=auction.HighestBidderID,
+                    AuctionID=auction.AuctionID,
+                    Message=message,
+                    TimeSent=datetime.now(timezone.utc)
+                )
+                self.db.add(notification)
+
+            # Notify the seller
+            message = f"Your auction for {auction.CardID} has ended. Final bid: ${auction.HighestBid}."
+            notification = Notification(
+                BidderID=auction.SellerID,  # Notify the seller as well
+                AuctionID=auction.AuctionID,
+                Message=message,
+                TimeSent=datetime.now(timezone.utc)
+            )
+            self.db.add(notification)
+
+            self.db.commit()
+
+        print(f"{len(expired_auctions)} auctions ended.")
+
+
+    def schedule_auction_cleanup(background_tasks: BackgroundTasks, db: Session):
+        auction_service = AuctionService(db)
+        background_tasks.add_task(auction_service.end_expired_auctions)
