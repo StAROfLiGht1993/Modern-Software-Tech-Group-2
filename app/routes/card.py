@@ -17,7 +17,7 @@ router = APIRouter()
              response_model=CardResponse,
              status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(req_user_role), Depends(req_admin_role)])
-def add_card(
+async def add_card(
     username : str,
     review: CardInfo,
     service: CardService = Depends(get_card_service),
@@ -36,9 +36,8 @@ def add_card(
 
 @router.post("/{username}/cards/{card_id}",
              response_model=CardResponse,
-             status_code=status.HTTP_201_CREATED,
              dependencies=[Depends(req_user_role), Depends(req_admin_role)])
-def delete_card(
+async def delete_card(
     username : str,
     card_id : int,
     service : CardService = Depends(get_card_service),
@@ -55,3 +54,18 @@ def delete_card(
         raise HTTPException(status_code=404, detail=f"Card ID {card_id} not available")
     
     return {"message" : f"Card ID {card_id} belonging to user {username} deleted sucessfully"}
+
+@router.post("/{username}/cards/all_cards",
+             response_model=CardResponse)
+async def read_card(
+    username : str,
+    service : CardService = Depends(get_card_service),
+):
+    """
+    Route to read the cards owned by user
+    """
+    owned_cards = service.get_cards_by_username(username)
+    if not owned_cards:
+        raise HTTPException(status_code=404, detail=f"User {username} does not exist!")
+    
+    return owned_cards

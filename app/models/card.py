@@ -38,5 +38,3 @@ class CardInfo(CardBase):
 
 class CardResponse(CardBase):
     model_config = ConfigDict(from_attributes=True)
-    id: int
-    book_id: int

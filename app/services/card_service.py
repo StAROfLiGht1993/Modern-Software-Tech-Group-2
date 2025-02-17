@@ -13,7 +13,7 @@ class CardService:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_cards_by_username(self, username: int):
+    def get_cards_by_username(self, username: str):
         """
         Get all the cards that are owned by a username
         """
