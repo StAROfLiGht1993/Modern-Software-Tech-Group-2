@@ -26,7 +26,7 @@ from app.routes.auth import cognito_service
 router = APIRouter()
 
 @router.get("/auction-collection")
-async def display_auction_page( page: int = Query(1, description="Page number"),  auction_service: Session = Depends(get_auction_service)):
+async def display_auction_page(page: int = Query(1, description="Page number"),  auction_service: AuctionService = Depends(get_auction_service)):
     auctions = auction_service.get_auctions_by_page(page)
     total_pages =  auction_service.get_total_page()
     print(auctions)
@@ -42,8 +42,8 @@ async def display_auction_details(auction_id:int, auction_service: AuctionServic
 
 @router.post("/place-bid")
 async def place_bid(bid_info: AuctionBid, auction_service: AuctionService = Depends(get_auction_service), profile_service: ProfileService = Depends(get_profile_service), auth_info: dict = Depends(cognito_service.validate_token)):  # ✅ Require authentication
-    useremail = auth_info.get("username")
-    user_id = profile_service.get_profile_id(useremail)
+    cognito_id = auth_info.get("username")
+    user_id = profile_service.get_profile_id(cognito_id)
     if not user_id:
         raise HTTPException(status_code=404, detail="User not found")
     auction = auction_service.bid_auction(user_id, bid_info)
