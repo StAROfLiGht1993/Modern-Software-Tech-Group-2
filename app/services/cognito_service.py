@@ -28,8 +28,8 @@ class CognitoService:
         self.user_pool_id = os.getenv("COGNITO_USER_POOL_ID1")
         self.client_id = os.getenv("COGNITO_CLIENT_ID1")
         self.client_secret = os.getenv("COGNITO_CLIENT_SECRET1")
-        self.aws_access_key = os.getenv("AWS_ACCESS_KEY")
-        self.aws_secret_key = os.getenv("AWS_SECRET_KEY")
+        self.aws_access_key = os.getenv("AWS_ACCESS_KEY") #created aws access key for list users API method
+        self.aws_secret_key = os.getenv("AWS_SECRET_KEY") #created aws secret key for list users API method
 
         # JSON Web Key Set (JWKS) is a collection of public cryptographic keys used to verify JSON Web Tokens
         self.jwks_url = f"https://cognito-idp.{self.region}.amazonaws.com/{self.user_pool_id}/.well-known/jwks.json"
