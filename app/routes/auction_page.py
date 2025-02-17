@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query, BackgroundTasks
 from fastapi.responses import HTMLResponse, JSONResponse
 from app.services.auction_service import AuctionService
 from app.services.profile_service import ProfileService
@@ -52,8 +52,13 @@ async def place_bid(bid_info: AuctionBid, auction_service: AuctionService = Depe
     else:
         raise HTTPException(status_code=400, detail="Failed to place bid")
 
-@router.get("/notifications/{user_id}")
-async def get_notifications(user_id: int, db: Session = Depends(get_db)):
-    notifications = db.query(Notification).filter(Notification.BidderID == user_id).all()
+@router.get("/notifications/{auction_id}")
+async def get_notifications(auction_id: int, db: Session = Depends(get_db)):
+    notifications = db.query(Notification).filter(Notification.AuctionID == auction_id).all()
     result = [{"auction_id": n.AuctionID, "message": n.Message, "timestamp": n.TimeSent.isoformat()} for n in notifications]
     return JSONResponse(content=result)
+
+@router.post("/cleanup_auctions")
+def cleanup_auctions(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    AuctionService.schedule_auction_cleanup(background_tasks, db)
+    return {"message": "Auction cleanup scheduled"}
