@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 
-from sqlalchemy import create_engine, MetaData
+from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, Session
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./pokeauction.db"
+SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"  # Update this with your actual database URL
 
-# Create engine
 engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
-
-# Base class for ORM models
+SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
-# Session configuration
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+from typing import Generator
 
-# Metadata for custom queries
-metadata = MetaData()
+def get_db() -> Generator[Session, None, None]:
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
