@@ -6,7 +6,7 @@ Profile DB Services, run database queries for specific manipulations
 
 from sqlalchemy.orm import Session
 from app.models.profile import Profile, ProfileInfo
-from app.dependencies.auth import req_user_role
+from app.dependencies.auth import req_admin_role
 
 
 class ProfileService:
@@ -56,12 +56,12 @@ class ProfileService:
         self.db.refresh(profile)
 
         return profile
-    @req_user_role(CognitoAdminRole)
+    
     def delete_profile(self, username: str):
         """
-        Delete a profile by Username
+        Delete a profile by Username - Admin Only
         """
-        
+
         profile = self.get_profile_username(username)
         if not profile:
             return False
