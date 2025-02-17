@@ -45,4 +45,6 @@ alembic revision --autogenerate -m "Init Auction App"
 
 alembic upgrade head
 
+uvicorn app.main:app --reload
+
 pause
