@@ -23,8 +23,9 @@ class Profile(Base):
     PhoneNumber = Column(Integer, nullable=True, default=0)
     CognitoUserID = Column(VARCHAR, nullable=True, unique=True)
 
-    # Relationship with Cards
+    # Relationship with Cards and Notifications
     cards = relationship("Card", back_populates="profiles", cascade="all, delete-orphan")
+    notifications = relationship('Notification', back_populates='user', cascade="all, delete-orphan")
 
 
 class ProfileBase(BaseModel):

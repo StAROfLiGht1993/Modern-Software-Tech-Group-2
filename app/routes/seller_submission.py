@@ -55,7 +55,7 @@ def create_auction(
             shutil.copyfileobj(file.file, buffer)
         logging.debug(f"File saved successfully to: {file_path}")
     except Exception as e:
-        logger.error(f"Failed to save file: {str(e)}")
+        logging.error(f"Failed to save file: {str(e)}")
         print("500 was raised")
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 

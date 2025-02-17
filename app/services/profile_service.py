@@ -25,11 +25,11 @@ class ProfileService:
         """
         return self.db.query(Profile).filter(Profile.Username == username)
     
-    def get_profile_id(self, email: str):
+    def get_profile_id(self, cognito_id: str):
         """
-        Retrieve Profile by Username
+        Retrieve Profile by id
         """
-        return self.db.query(Profile.UserID).filter(Profile.Email == email).first()
+        return self.db.query(Profile.UserID).filter(Profile.CognitoUserID == cognito_id).first()[0]
 
     def add_profile(self, profile_data: ProfileInfo):
         """

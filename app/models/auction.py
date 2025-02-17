@@ -8,7 +8,7 @@ from sqlalchemy import Column, Integer, VARCHAR, Float, ForeignKey, DateTime
 from app.db.db import Base
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import relationship
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 
@@ -25,9 +25,16 @@ class Auction(Base):
     HighestBidderID = Column(Integer, nullable=False)
     HighestBid = Column(Float, nullable=False)
     ImageURL = Column(VARCHAR, nullable=False)
-
+    
+    # Relationship with Notifications, Cards and Sellers
+    notifications = relationship('Notification', back_populates='auction', cascade="all, delete-orphan")
     card_id = relationship("Card", foreign_keys=[CardID], back_populates="card_id_auctions")
     seller_id = relationship("Card", foreign_keys=[SellerID], back_populates="seller_id_auction")
+
+    def has_ended(self):
+        """Check if the auction has ended."""
+        return datetime.now(timezone.utc) > self.EndTime
+
 
 class AuctionBase(BaseModel):
     AuctionID: Optional[int] = None  # Auto-incremented by the database
@@ -57,4 +64,8 @@ class AuctionBid(BaseModel):
     BidAmount: float
 
 class AuctionResponse(AuctionBase):
-    model_config = ConfigDict(from_attributes=True)
+    AuctionID: int
+    CardID: int
+    SellerID: int
+    MinimumIncrement: float
+    
