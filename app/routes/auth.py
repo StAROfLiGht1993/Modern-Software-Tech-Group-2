@@ -18,9 +18,12 @@ This file defines the authentication endpoints for the FastAPI application.
 - MFA (multi-factor authentication) for login, confirmation
 '''
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
+from sqlalchemy.orm import Session
 from app.services.cognito_service import CognitoService
 from app.exceptions import ServiceException
+from app.models.profile import Profile
+from app.db.db import get_db
 
 router = APIRouter()
 cognito_service = CognitoService() #create instance of CognitoService
@@ -43,12 +46,32 @@ cognito_service = CognitoService() #create instance of CognitoService
 
 
 @router.post("/registration", status_code=status.HTTP_201_CREATED)
-def register(email: str, password: str):
+def register(email: str, password: str, db: Session = Depends(get_db)):
     """
     Register a new user with a distinct email, and password.
     """
     try:
         response = cognito_service.register_user(email, password)
+        user_sub = response["UserSub"]
+
+        '''
+        Create a new profile entry in the profiles table
+        '''
+
+        profile = Profile(
+            Username=email,
+            Password=password,
+            Email=email,
+            NumberOfRating=0, # Default 0 upon creation
+            CurrentRating=0.0, # Default 0 upon creation
+            PhoneNumber=None
+            CognitoUserID=user_sub
+        )
+
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
+        
         return {
             "message": "User registration successful.",
             "user_sub": response["UserSub"],
@@ -136,5 +159,17 @@ def resend_confirmation_code(email: str):
     try:
         cognito_service.resend_confirmation_code(email)
         return {"message": "Confirmation code resent successfully."}
+    except ServiceException as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    
+# add new endpoint for list users
+@router.get("/get-all-users")
+def list_users():
+    """
+    List all users in the user pool.
+    """
+    try:
+        users = cognito_service.list_users()
+        return {"users": users}
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
