@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from app.services.auction_service import AuctionService
 from app.services.profile_service import ProfileService
 from sqlalchemy.orm import Session
@@ -7,7 +7,10 @@ from app.models.auction import Auction, AuctionInfo, AuctionBid
 from app.models.card import Card
 from app.dependencies.services import get_auction_service, get_profile_service
 from pydantic import BaseModel
+from app.models.auction import AuctionInfo
+from app.models.notifications import Notification
 from typing import Dict
+from sqlalchemy.orm import Session
 import os
 import shutil
 import requests
@@ -47,3 +50,9 @@ async def place_bid(bid_info: AuctionBid, auction_service: AuctionService = Depe
         return auction
     else:
         raise HTTPException(status_code=400, detail="Failed to place bid")
+
+@app.get("/notifications/{user_id}")
+async def get_notifications(user_id: int, db: Session = Depends(get_db)):
+    notifications = db.query(Notification).filter(Notification.BidderID == user_id).all()
+    result = [{"auction_id": n.AuctionID, "message": n.Message, "timestamp": n.TimeSent.isoformat()} for n in notifications]
+    return JSONResponse(content=result)
