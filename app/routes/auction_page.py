@@ -20,6 +20,7 @@ from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 import os
 
+from app.db.db import get_db
 from app.routes.auth import cognito_service
 
 router = APIRouter()
@@ -51,7 +52,7 @@ async def place_bid(bid_info: AuctionBid, auction_service: AuctionService = Depe
     else:
         raise HTTPException(status_code=400, detail="Failed to place bid")
 
-@app.get("/notifications/{user_id}")
+@router.get("/notifications/{user_id}")
 async def get_notifications(user_id: int, db: Session = Depends(get_db)):
     notifications = db.query(Notification).filter(Notification.BidderID == user_id).all()
     result = [{"auction_id": n.AuctionID, "message": n.Message, "timestamp": n.TimeSent.isoformat()} for n in notifications]

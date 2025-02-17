@@ -9,9 +9,10 @@ from app.models.card import Card, CardInfo
 from app.models.profile import Profile
 from app.models.auction import Auction, AuctionInfo, AuctionBid
 from app.models.notifications import Notification
-from profile_service import ProfileService
+from app.services.profile_service import ProfileService
 from datetime import datetime
 from fastapi import HTTPException
+from app.db.db import get_db
 
 from typing import Union
 
