@@ -6,7 +6,7 @@ Auction Table - Will contain all the Auction data
 
 from sqlalchemy import Column, Integer, VARCHAR, Float, ForeignKey, DateTime
 from app.db.db import Base
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from typing import Optional
@@ -40,6 +40,15 @@ class AuctionBase(BaseModel):
     HighestBid: float
     ImageURL: str
 
+    @field_validator("EndTime")
+    @classmethod
+    def check_endtime(cls, value : datetime):
+        # Make sure end time is later than now
+        if value <= datetime.now():
+            raise ValueError("End Time must be later than today!")
+        
+        return value
+
 class AuctionInfo(AuctionBase):
     pass
 
@@ -48,7 +57,4 @@ class AuctionBid(BaseModel):
     BidAmount: float
 
 class AuctionResponse(AuctionBase):
-    AuctionID: int
-    CardID: int
-    SellerID: int
-    MinimumIncrement: float
+    model_config = ConfigDict(from_attributes=True)
