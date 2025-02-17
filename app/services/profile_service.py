@@ -24,6 +24,12 @@ class ProfileService:
         Retrieve Profile by Username
         """
         return self.db.query(Profile).filter(Profile.Username == username)
+    
+    def get_profile_id(self, email: str):
+        """
+        Retrieve Profile by Username
+        """
+        return self.db.query(Profile.UserID).filter(Profile.Email == email).first()
 
     def add_profile(self, profile_data: ProfileInfo):
         """

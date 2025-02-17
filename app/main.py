@@ -6,7 +6,7 @@ from fastapi.responses import JSONResponse
 from fastapi.security import HTTPBearer
 import logging
 
-from app.routes import search, seller_submission, card_verification, auth
+from app.routes import search, seller_submission, card_verification, auth, auction_page
 from app.exceptions import ServiceException
 
 # Import the HTTPBearer class
@@ -60,6 +60,7 @@ async def global_exception_handler(request: Request, exc: Exception):
     )
 
 # Register routes
+app.include_router(auction_page.router, prefix="/bidding")
 app.include_router(auth.router, prefix="", tags=["Authentication"])
 app.include_router(seller_submission.router, prefix="/auction", tags=["Submission"])
 app.include_router(card_verification.router, prefix="/verification", tags=["Verification"])

@@ -110,3 +110,43 @@ Open a **Command Prompt** or **Terminal**, then run the following command:
 
 ```sh
 tesseract -v
+```
+
+### Setting up of IAM policy in AWS for listUsers API:
+
+```
+Failed to list users: An error occurred (AccessDeniedException) when calling the ListUsers operation: User: arn:aws:iam::975050288449:user/verlicia_1 is not authorized to perform: cognito-idp:ListUsers on resource: arn:aws:cognito-idp:ap-southeast-1:975050288449:userpool/ap-southeast-1_kdWzJyzTn because no identity-based policy allows the cognito-idp:ListUsers action"
+```
+1. Create or Update an IAM Policy
+Create a new IAM policy or update an existing one to include the necessary permissions for Cognito operations.
+
+Example Policy
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cognito-idp:ListUsers",
+                "cognito-idp:AdminGetUser",
+                "cognito-idp:AdminCreateUser",
+                "cognito-idp:AdminDeleteUser",
+                "cognito-idp:AdminUpdateUserAttributes"
+            ],
+            "Resource": "arn:aws:cognito-idp:ap-southeast-1:975050288449:userpool/ap-southeast-1_kdWzJyzTn"
+        }
+    ]
+}
+```
+
+2. Attach the Policy to the IAM User or Role
+Go to the IAM Console: Navigate to the IAM Console.
+Select Users or Roles: Depending on whether you are using an IAM user or role, select "Users" or "Roles" from the left-hand menu.
+Select the User or Role: Click on the IAM user or role that you are using for your application.
+Attach Policy:
+Click on the "Add permissions" button.
+Select "Attach policies directly".
+Search for the policy you created or updated.
+Select the policy and click "Next: Review".
+Click "Add permissions" to attach the policy.

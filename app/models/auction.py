@@ -43,6 +43,10 @@ class AuctionBase(BaseModel):
 class AuctionInfo(AuctionBase):
     pass
 
+class AuctionBid(BaseModel):
+    AuctionID: int
+    BidAmount: float
+
 class AuctionResponse(AuctionBase):
     AuctionID: int
     CardID: int

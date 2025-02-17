@@ -5,7 +5,7 @@ import Logo from "./assets/logo.svg.png"; // Ensure the file exists in src/asset
 
 // Components
 import AuctionList from "./components/list-grp";
-import AuctionDetails from "./components/auction-details";
+import BiddingPage from "./components/auction-details";
 import SearchPage from "./components/SearchPage";
 
 // Services
@@ -75,8 +75,8 @@ function App() {
       <div className="mt-8">
         <Routes>
           <Route path="/" element={<AuctionList />} />
-          <Route path="/auction/:id" element={<AuctionDetails />} />
           <Route path="/search" element={<SearchPage fetchSearchResults={fetchSearchResults} />} />
+          <Route path="/bidding/:auctionID" element={<BiddingPage />} />
         </Routes>
       </div>
     </div>

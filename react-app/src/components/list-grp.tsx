@@ -1,73 +1,135 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auction, fetchAuctions } from "../services/auction-service";
+import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
-const ListGrp: React.FC = () => {
+// Define the Auction type based on FastAPI response
+interface Auction {
+  AuctionID: number;
+  CardID: number;
+  title: string;
+  Status: string;
+  HighestBid: number;
+  IsValidated: boolean;
+  CardName: string;
+  CardQuality: boolean;
+  ImageURL: string;
+}
+
+const AuctionList: React.FC = () => {
   const [auctions, setAuctions] = useState<Auction[]>([]);
   const [page, setPage] = useState<number>(1);
   const [totalPages, setTotalPages] = useState<number>(1);
+  const [inputPage, setInputPage] = useState<string>("");
   const navigate = useNavigate();
 
+
   useEffect(() => {
-    loadAuctions();
+    fetchAuctions(page);
   }, [page]); // Fetch auctions when page changes
 
-  const loadAuctions = async () => {
-    const response = await fetchAuctions(page); // ✅ Fetch full response
-    setAuctions(response.auctions); // ✅ Now correctly extracts auctions
-    setTotalPages(response.total_pages); // ✅ Now correctly extracts total pages
+  const fetchAuctions = async (pageNumber:number) => {
+    try {
+      const response = await axios.get<{ auctions: Auction[]; total_pages: number }>(
+        `http://127.0.0.1:8000/auction-collection?page=${pageNumber}`
+    );
+      setAuctions(response.data.auctions);
+      setTotalPages(response.data.total_pages);
+  } catch (error) {
+      console.error("Error fetching auctions:", error);
+   }
   };
 
-  return (
-    <div className="max-w-4xl mx-auto bg-white p-6 shadow-lg rounded-lg">
-      <h1 className="text-2xl font-bold text-center mb-4">Live Auctions</h1>
-      <div className="space-y-4">
-        {auctions.length === 0 ? (
-          <p className="text-center text-red-500">No auctions available.</p>
-        ) : (
-          auctions.map((auction) => (
-            <div
-              key={auction.AuctionID}
-              className="p-4 bg-blue-100 rounded-lg shadow-md cursor-pointer hover:bg-blue-200"
-              onClick={() => navigate(`/auction/${auction.AuctionID}`)}
-            >
-              <h2 className="text-lg font-semibold">{auction.title}</h2>
-              <p><strong>Highest Bid:</strong> ${auction.HighestBid.toFixed(2)}</p>
-              <p><strong>Status:</strong> {auction.Status}</p>
-              <p><strong>Ends:</strong> {new Date(auction.EndTime).toLocaleString()}</p>
-            </div>
-          ))
-        )}
-      </div>
+  const handlePageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+      setInputPage(event.target.value);
+  };
 
-      {/* ✅ Pagination */}
-      <div className="flex justify-center space-x-2 mt-4">
-        <button
-          className={`px-4 py-2 rounded ${page === 1 ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"}`}
-          disabled={page === 1}
-          onClick={() => setPage(page - 1)}
-        >
-          Previous
-        </button>
-        {[...Array(totalPages)].map((_, index) => (
-          <button
-            key={index}
-            className={`px-3 py-2 rounded ${page === index + 1 ? "bg-blue-600 text-white" : "bg-gray-300 hover:bg-gray-400"}`}
-            onClick={() => setPage(index + 1)}
-          >
-            {index + 1}
-          </button>
-        ))}
-        <button
-          className={`px-4 py-2 rounded ${page === totalPages ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 text-white hover:bg-blue-600"}`}
-          disabled={page === totalPages}
-          onClick={() => setPage(page + 1)}
-        >
-          Next
-        </button>
-      </div>
+  const goToPage = () => {
+    const pageNumber = parseInt(inputPage);
+    if (!isNaN(pageNumber) && pageNumber >= 1 && pageNumber <= totalPages) {
+        setPage(pageNumber);
+    } else {
+        alert("Invalid page number");
+    }
+  };
+
+  const goToBiddingPage = (auctionID: number) => {
+    navigate(`/bidding/${auctionID}`);
+  };
+
+
+  return (
+    <div style={{ padding: "20px", textAlign: "center" }}>
+        <h2>Live Auctions</h2>
+
+        {/* Auction Grid */}
+        <div style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(2, 1fr)", // Two cards per row
+            gap: "20px",
+            justifyContent: "center",
+            marginTop: "20px"
+        }}>
+            {auctions.map((auction) => (
+                <div key={auction.AuctionID} style={{
+                    border: "1px solid #ddd",
+                    borderRadius: "10px",
+                    padding: "10px",
+                    textAlign: "center",
+                    backgroundColor: "#fff",
+                    boxShadow: "2px 2px 10px rgba(0, 0, 0, 0.1)"
+                }}>
+                    {/* Clickable Image */}
+                    <img
+                        src={auction.ImageURL}
+                        alt={auction.CardName}
+                        width="100%"
+                        style={{ borderRadius: "5px", cursor: "pointer" }}
+                        onClick={() => goToBiddingPage(auction.AuctionID)}
+                    />
+
+                    {/* Auction Details */}
+                    <div style={{
+                        marginTop: "10px",
+                        padding: "10px",
+                        borderTop: "1px solid #ddd",
+                        textAlign: "left"
+                    }}>
+                        <p><strong>Auction ID:</strong> {auction.AuctionID}</p>
+                        <p><strong>Title:</strong> {auction.title}</p>
+                        <p><strong>Status:</strong> {auction.Status}</p>
+                        <p><strong>Highest Bid:</strong> ${auction.HighestBid}</p>
+                        <p><strong>Card Name:</strong> {auction.CardName}</p>
+                    </div>
+                </div>
+            ))}
+        </div>
+
+        {/* Pagination Controls */}
+        <div style={{ marginTop: "20px" }}>
+            <button onClick={() => setPage((prev) => Math.max(prev - 1, 1))} disabled={page === 1}>
+                Previous
+            </button>
+
+            <span style={{ margin: "0 10px" }}> Page {page} of {totalPages} </span>
+
+            <button onClick={() => setPage((prev) => Math.min(prev + 1, totalPages))} disabled={page === totalPages}>
+                Next
+            </button>
+
+            {/* Page Number Input */}
+            <input
+                type="number"
+                value={inputPage}
+                onChange={handlePageChange}
+                placeholder="Go to page"
+                style={{ marginLeft: "10px", padding: "5px", width: "60px" }}
+            />
+            <button onClick={goToPage} style={{ marginLeft: "5px" }}>Go</button>
+        </div>
     </div>
-  );
+);
 };
 
-export default ListGrp;
+export default AuctionList;
