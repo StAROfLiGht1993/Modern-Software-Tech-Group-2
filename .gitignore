@@ -175,4 +175,4 @@ cython_debug/
 
 # Do not upload .dbs
 migrations/
-app.db
+*.db
