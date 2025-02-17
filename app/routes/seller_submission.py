@@ -5,7 +5,7 @@ from app.models.auction import Auction, AuctionResponse, AuctionInfo
 from app.models.card import Card
 from app.services.auction_service import AuctionService
 from app.dependencies.services import get_auction_service
-# from app.dependencies.auth import req_user_role
+from app.dependencies.auth import req_user_role
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timedelta
