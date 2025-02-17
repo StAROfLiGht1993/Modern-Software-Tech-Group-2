@@ -25,7 +25,7 @@ class CardService:
 
         return self.db.query(Card).filter(Card.OwnerID == user_id).all()
 
-    def add_card(self, username: int, card_data: CardInfo):
+    def add_card(self, username: str, card_data: CardInfo):
         """
         Specific User adds new card
         """
@@ -40,7 +40,7 @@ class CardService:
         self.db.refresh(new_card)
         return new_card
 
-    def delete_card(self, card_id: int, username: int):
+    def delete_card(self, card_id: int, username: str):
         """
         Delete card for specific User
         """
@@ -48,10 +48,19 @@ class CardService:
         profile = self.db.query(Profile).filter(Profile.Username == username).first()
         if not profile:
             # TODO Return a forbidden permissons error here
-            return None
+            return 401
         card = self.db.query(Card).filter(
             Card.CardID == card_id, Card.OwnerID == profile.UserID
         )
+        card_exists = self.db.query(Card).filter(
+            Card.CardID == card_id
+        )
+        if not card:
+            # Unauthorized
+            return 403
+        if not card_exists:
+            # Card does not exist
+            return 404
         self.db.delete(card)
         self.db.commit()
         return True
