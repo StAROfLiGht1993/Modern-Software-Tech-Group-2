@@ -21,7 +21,7 @@ class Profile(Base):
     NumberOfRating = Column(Integer, nullable=False, default=0)
     CurrentRating = Column(Integer, nullable=False, default=0)
     PhoneNumber = Column(Integer, nullable=True, default=0)
-    CognitoUserID = Column(VARCHAR, nullable=True)
+    CognitoUserID = Column(VARCHAR, nullable=True, unique=True)
 
     # Relationship with Cards
     cards = relationship("Card", back_populates="profiles", cascade="all, delete-orphan")
