@@ -6,6 +6,7 @@ Profile DB Services, run database queries for specific manipulations
 
 from sqlalchemy.orm import Session
 from app.models.profile import Profile, ProfileInfo
+from app.dependencies.auth import req_admin_role
 
 
 class ProfileService:
@@ -45,6 +46,7 @@ class ProfileService:
         """
         Update profile information
         """
+        
         profile = self.get_profile_username(username)
         if not profile:
             return None
@@ -54,11 +56,12 @@ class ProfileService:
         self.db.refresh(profile)
 
         return profile
-
+    
     def delete_profile(self, username: str):
         """
-        Delet a profile by Username
+        Delete a profile by Username - Admin Only
         """
+
         profile = self.get_profile_username(username)
         if not profile:
             return False

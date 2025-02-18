@@ -1,5 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query
-from fastapi.responses import HTMLResponse
+from fastapi import APIRouter, Depends, HTTPException, File, Form, UploadFile, Query, BackgroundTasks
+from fastapi.responses import HTMLResponse, JSONResponse
 from app.services.auction_service import AuctionService
 from app.services.profile_service import ProfileService
 from sqlalchemy.orm import Session
@@ -7,7 +7,10 @@ from app.models.auction import Auction, AuctionInfo, AuctionBid
 from app.models.card import Card
 from app.dependencies.services import get_auction_service, get_profile_service
 from pydantic import BaseModel
+from app.models.auction import AuctionInfo
+from app.models.notifications import Notification
 from typing import Dict
+from sqlalchemy.orm import Session
 import os
 import shutil
 import requests
@@ -17,6 +20,7 @@ from fastapi.security import OAuth2PasswordBearer
 from dotenv import load_dotenv
 import os
 
+from app.db.db import get_db
 from app.routes.auth import cognito_service
 
 router = APIRouter()
@@ -47,3 +51,14 @@ async def place_bid(bid_info: AuctionBid, auction_service: AuctionService = Depe
         return auction
     else:
         raise HTTPException(status_code=400, detail="Failed to place bid")
+
+@router.get("/notifications/{auction_id}")
+async def get_notifications(auction_id: int, db: Session = Depends(get_db)):
+    notifications = db.query(Notification).filter(Notification.AuctionID == auction_id).all()
+    result = [{"auction_id": n.AuctionID, "message": n.Message, "timestamp": n.TimeSent.isoformat()} for n in notifications]
+    return JSONResponse(content=result)
+
+@router.post("/cleanup_auctions")
+def cleanup_auctions(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
+    AuctionService.schedule_auction_cleanup(background_tasks, db)
+    return {"message": "Auction cleanup scheduled"}

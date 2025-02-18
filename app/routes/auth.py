@@ -24,26 +24,11 @@ from app.services.cognito_service import CognitoService
 from app.exceptions import ServiceException
 from app.models.profile import Profile
 from app.db.db import get_db
+from app.dependencies.auth import req_admin_role
+import bcrypt
 
 router = APIRouter()
 cognito_service = CognitoService() #create instance of CognitoService
-
-# ------------ update registration to only accept email ----------------------------
-# @router.post("/registration", status_code=status.HTTP_201_CREATED)
-# def register(username: str, email: str, password: str):
-#     """
-#     Register a new user with a distinct username, email, and password.
-#     """
-#     try:
-#         response = cognito_service.register_user(username, email, password)
-#         return {
-#             "message": "User registration successful.",
-#             "user_sub": response["UserSub"],
-#             "user_confirmed": response["UserConfirmed"]
-#         }
-#     except ServiceException as e:
-#         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
 
 @router.post("/registration", status_code=status.HTTP_201_CREATED)
 def register(email: str, password: str, db: Session = Depends(get_db)):
@@ -51,6 +36,9 @@ def register(email: str, password: str, db: Session = Depends(get_db)):
     Register a new user with a distinct email, and password.
     """
     try:
+        # Hash the password using bcrypt
+        hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt())
+
         response = cognito_service.register_user(email, password)
         user_sub = response["UserSub"]
 
@@ -60,7 +48,7 @@ def register(email: str, password: str, db: Session = Depends(get_db)):
 
         profile = Profile(
             Username=email,
-            Password=password,
+            Password=hashed_password.decode('utf-8'),  # Store the hashed password
             Email=email,
             NumberOfRating=0, # Default 0 upon creation
             CurrentRating=0.0, # Default 0 upon creation
@@ -80,22 +68,6 @@ def register(email: str, password: str, db: Session = Depends(get_db)):
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
-
-# ---------------------- End of update ---------------------------------
-
-
-# ---------------------- Update the login endpoint to use email instead of username ---------------------- 
-# @router.post("/login")
-# def login(username: str, password: str):
-#     """
-#     Login endpoint to authenticate users and return a JWT token.
-#     """
-#     try:
-#         tokens = cognito_service.authenticate_user(username, password)
-#         return {"message": "Login successful", "tokens": tokens}
-#     except ServiceException as e:
-#         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
 #update router to use email as login parameter instead of username
 @router.post("/login")
 def login(email: str, password: str):
@@ -107,29 +79,6 @@ def login(email: str, password: str):
         return {"message": "Login successful", "tokens": tokens}
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-
-#----------------------------- End of update ---------------------------------  
-
-# ---------------------- Update the confirmation endpoint to use email instead of username ---------------------- 
-# Can we improve the code quality of the following endpoint implementation?
-# @router.post("/confirmation")
-# def confirm(username: str, confirmation_code: str):
-#     """
-#     Confirm the user's email address using the code sent by Cognito.
-#     """
-#     try:
-#         # Confirm sign-up
-#         cognito_service.client.confirm_sign_up(
-#             ClientId=cognito_service.client_id,
-#             Username=username,
-#             ConfirmationCode=confirmation_code,
-#             SecretHash=cognito_service.calculate_secret_hash(username)
-#         )
-
-#         return {"message": "User confirmed successfully."}
-
-#     except ServiceException as e:
-#         raise HTTPException(status_code=e.status_code, detail=e.detail)
 
 #update router to use email as login parameter instead of username
 @router.post("/confirmation")
@@ -148,7 +97,6 @@ def confirm(email: str, confirmation_code: str):
 
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-#----------------------------- End of update ---------------------------------
 
 # add new endpoint for resend confirmation code
 @router.post("/resend-confirmation-code")
@@ -161,15 +109,13 @@ def resend_confirmation_code(email: str):
         return {"message": "Confirmation code resent successfully."}
     except ServiceException as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail)
-    
-# add new endpoint for list users
-@router.get("/get-all-users")
-def list_users():
+
+@router.delete("/profiles/{username}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_profile(username: str, service: CognitoService = Depends(), db: Session = Depends(get_db), claims: dict = Depends(req_admin_role)):
     """
-    List all users in the user pool.
+    Delete a profile by Username - Admin only
     """
-    try:
-        users = cognito_service.list_users()
-        return {"users": users}
-    except ServiceException as e:
-        raise HTTPException(status_code=e.status_code, detail=e.detail)
+    if not service.delete_profile(username):
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Profile not found")
+    return {"detail": "Profile deleted successfully"}
+
