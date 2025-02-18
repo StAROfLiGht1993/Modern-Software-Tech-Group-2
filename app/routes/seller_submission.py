@@ -15,6 +15,7 @@ import uuid
 import logging
 from sqlalchemy.orm import Session
 from app.db.db import get_db
+from pydantic import ValidationError
 
 router = APIRouter()
 
@@ -71,6 +72,18 @@ def create_auction(
     '''Calculate the end time of the auction'''
     end_time = datetime.now() + timedelta(hours=auction_duration)
 
+    # Validate the end time
+    if end_time <= datetime.now():
+        raise HTTPException(status_code=400, detail="End Time must be later than the current time!")
+
+    # Validate the starting bid
+    if starting_bid <= 0:
+        raise HTTPException(status_code=400, detail="Starting bid must be greater than zero!")
+
+    # Validate the minimum increment
+    if minimum_increment <= 0:
+        raise HTTPException(status_code=400, detail="Minimum increment must be greater than zero!")
+
     '''Create auction record'''
     auction_data = Auction(
         CardID=card.CardID,
@@ -88,15 +101,18 @@ def create_auction(
     db.commit()
     db.refresh(auction_data)
     
-    return {
-        "AuctionID": auction_data.AuctionID,
-        "CardID": auction_data.CardID,
-        "CardName": auction_data.CardName,
-        "SellerID": auction_data.SellerID,
-        "MinimumIncrement": auction_data.MinimumIncrement,
-        "EndTime": auction_data.EndTime,
-        "Status": auction_data.Status,
-        "HighestBidderID": auction_data.HighestBidderID,
-        "HighestBid": auction_data.HighestBid,
-        "ImageURL": auction_data.ImageURL
-    }
+    try:
+        return {
+            "AuctionID": auction_data.AuctionID,
+            "CardID": auction_data.CardID,
+            "CardName": auction_data.CardName,
+            "SellerID": auction_data.SellerID,
+            "MinimumIncrement": auction_data.MinimumIncrement,
+            "EndTime": auction_data.EndTime,
+            "Status": auction_data.Status,
+            "HighestBidderID": auction_data.HighestBidderID,
+            "HighestBid": auction_data.HighestBid,
+            "ImageURL": auction_data.ImageURL
+        }
+    except ValidationError as e:
+        raise HTTPException(status_code=400, detail=f"Response validation error: {e.errors()}")
