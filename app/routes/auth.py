@@ -20,11 +20,11 @@ This file defines the authentication endpoints for the FastAPI application.
 
 from fastapi import APIRouter, HTTPException, status, Depends
 from sqlalchemy.orm import Session
-from app.services.cognito_service import CognitoService, CognitoAdminRole, RoleChecker
+from app.services.cognito_service import CognitoService
 from app.exceptions import ServiceException
 from app.models.profile import Profile
 from app.db.db import get_db
-
+from app.dependencies.auth import req_admin_role
 router = APIRouter()
 cognito_service = CognitoService() #create instance of CognitoService
 
@@ -124,7 +124,7 @@ def resend_confirmation_code(email: str):
 #         raise HTTPException(status_code=e.status_code, detail=e.detail)
     
 @router.delete("/profiles/{username}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_profile(username: str, service: CognitoService = Depends(), db: Session = Depends(get_db), claims: dict = Depends(RoleChecker(CognitoAdminRole))):
+def delete_profile(username: str, service: CognitoService = Depends(), db: Session = Depends(get_db), claims: dict = Depends(req_admin_role)):
     """
     Delete a profile by Username - Admin only
     """
