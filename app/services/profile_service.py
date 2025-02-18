@@ -6,6 +6,7 @@ Profile DB Services, run database queries for specific manipulations
 
 from sqlalchemy.orm import Session
 from app.models.profile import Profile, ProfileInfo
+from app.dependencies.auth import req_admin_role
 
 
 class ProfileService:
@@ -24,11 +25,11 @@ class ProfileService:
         """
         return self.db.query(Profile).filter(Profile.Username == username)
     
-    def get_profile_id(self, email: str):
+    def get_profile_id(self, cognito_id: str):
         """
-        Retrieve Profile by Username
+        Retrieve Profile by id
         """
-        return self.db.query(Profile.UserID).filter(Profile.Email == email).first()
+        return self.db.query(Profile.UserID).filter(Profile.CognitoUserID == cognito_id).first()[0]
 
     def add_profile(self, profile_data: ProfileInfo):
         """
@@ -45,6 +46,7 @@ class ProfileService:
         """
         Update profile information
         """
+        
         profile = self.get_profile_username(username)
         if not profile:
             return None
@@ -54,11 +56,12 @@ class ProfileService:
         self.db.refresh(profile)
 
         return profile
-
+    
     def delete_profile(self, username: str):
         """
-        Delet a profile by Username
+        Delete a profile by Username - Admin Only
         """
+
         profile = self.get_profile_username(username)
         if not profile:
             return False

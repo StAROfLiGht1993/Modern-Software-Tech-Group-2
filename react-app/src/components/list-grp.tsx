@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Auction, fetchAuctions } from "../services/auction-service";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 
 // Define the Auction type based on FastAPI response
 interface Auction {
@@ -13,7 +12,7 @@ interface Auction {
   HighestBid: number;
   IsValidated: boolean;
   CardName: string;
-  CardQuality: boolean;
+  CardQuality: string;
   ImageURL: string;
 }
 
@@ -25,14 +24,10 @@ const AuctionList: React.FC = () => {
   const navigate = useNavigate();
 
 
-  useEffect(() => {
-    fetchAuctions(page);
-  }, [page]); // Fetch auctions when page changes
-
   const fetchAuctions = async (pageNumber:number) => {
     try {
       const response = await axios.get<{ auctions: Auction[]; total_pages: number }>(
-        `http://127.0.0.1:8000/auction-collection?page=${pageNumber}`
+        `http://127.0.0.1:8000/bidding/auction-collection?page=${pageNumber}`
     );
       setAuctions(response.data.auctions);
       setTotalPages(response.data.total_pages);
@@ -40,6 +35,10 @@ const AuctionList: React.FC = () => {
       console.error("Error fetching auctions:", error);
    }
   };
+
+  useEffect(() => {
+    fetchAuctions(page);
+  }, [page]); // Fetch auctions when page changes
 
   const handlePageChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       setInputPage(event.target.value);

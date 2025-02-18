@@ -22,9 +22,10 @@ class SearchService:
         search_pattern = f"%{search_query}%"
         return self.db.query(Profile).filter(Profile.Username.like(search_pattern)).all()
     
-    # def search_auctions(self, search_query: str):
-    #     """
-    #     Search for auctions based on the search query
-    #     """
-    #     return self.db.query(Auction).filter(Auction.AuctionName.like(f"%{search_query}%")).all()
+    def search_auctions(self, search_query: str):
+        """
+        Search for auctions based on the search query
+        """
+        search_pattern = f"%{search_query}%"
+        return self.db.query(Auction).filter(Auction.AuctionName.like(search_pattern)).all()
 

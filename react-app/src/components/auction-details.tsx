@@ -26,13 +26,15 @@ const BiddingPage: React.FC = () => {
     const [message, setMessage] = useState<string>("");
 
     useEffect(() => {
-        fetchAuctionDetails();
-    }, []);
+      if (auctionID) {
+          fetchAuctionDetails();
+        }
+    }, [auctionID]); 
 
     const fetchAuctionDetails = async () => {
         try {
             const response = await axios.get<AuctionDetail>(
-                `http://127.0.0.1:8000/auction-details/${auctionID}`
+                `http://127.0.0.1:8000/bidding/auction-details/${auctionID}`
             );
             setAuction(response.data);
         } catch (error) {
@@ -45,30 +47,40 @@ const BiddingPage: React.FC = () => {
     };
 
     const submitBid = async () => {
-        if (!auction) return;
-
-        const bidValue = parseFloat(bidAmount);
-        if (isNaN(bidValue) || bidValue <= auction.HighestBid) {
-            setMessage("Bid must be higher than the current highest bid!");
-            return;
-        }
-
-        try {
-            const bidData: BidRequest = {
-                auction_id: auction.AuctionID,
-                user_id: 1,  // Temporary hardcoded user ID, replace with real user session
-                HighestBid: bidValue
-            };
-
-            const response = await axios.post("http://127.0.0.1:8000/place-bid", bidData);
-
-            setMessage(response.data.message);
-            setAuction((prev) => (prev ? { ...prev, HighestBid: bidValue } : prev)); // Update highest bid
-        } catch (error) {
-            console.error("Error placing bid:", error);
-            setMessage("Failed to place bid. Please try again.");
-        }
-    };
+      if (!auction) return;
+  
+      const bidValue = parseFloat(bidAmount);
+      if (isNaN(bidValue) || bidValue <= auction.HighestBid) {
+          setMessage("Bid must be higher than the current highest bid!");
+          return;
+      }
+  
+      try {
+          const token = localStorage.getItem("authToken"); // ✅ Retrieve stored token
+          if (!token) {
+              setMessage("Please log in to place a bid.");
+              return;
+          }
+  
+          const bidData: BidRequest = {
+              auction_id: auction.AuctionID,
+              user_id: 1, // This should be removed; backend should get user from token
+              HighestBid: bidValue
+          };
+  
+          const response = await axios.post(
+              "http://127.0.0.1:8000/bidding/place-bid",
+              bidData,
+              { headers: { Authorization: `Bearer ${token}` } } // ✅ Attach Auth Header
+          );
+  
+          setMessage(response.data.message);
+          setAuction((prev) => (prev ? { ...prev, HighestBid: bidValue } : prev)); // ✅ Update UI bid
+      } catch (error) {
+          console.error("Error placing bid:", error);
+          setMessage("Failed to place bid. Please try again.");
+      }
+  };
 
     if (!auction) return <h2>Loading auction details...</h2>;
 

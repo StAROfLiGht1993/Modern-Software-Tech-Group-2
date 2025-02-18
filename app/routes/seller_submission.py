@@ -5,7 +5,7 @@ from app.models.auction import Auction, AuctionResponse, AuctionInfo
 from app.models.card import Card
 from app.services.auction_service import AuctionService
 from app.dependencies.services import get_auction_service
-# from app.dependencies.auth import req_user_role
+from app.dependencies.auth import req_user_role
 from starlette.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from datetime import datetime, timedelta
@@ -53,9 +53,9 @@ def create_auction(
     try:
         with open(file_path, "wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
-        logger.debug(f"File saved successfully to: {file_path}")
+        logging.debug(f"File saved successfully to: {file_path}")
     except Exception as e:
-        logger.error(f"Failed to save file: {str(e)}")
+        logging.error(f"Failed to save file: {str(e)}")
         print("500 was raised")
         raise HTTPException(status_code=500, detail=f"Failed to save file: {str(e)}")
 
