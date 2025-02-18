@@ -33,8 +33,8 @@ os.makedirs(TEMPLATES_DIR, exist_ok=True)
 os.makedirs(IMAGE_DIR, exist_ok=True)
 
 '''To handle file uploads and form form data.'''
-@router.post("/submit-auction", response_model=AuctionResponse, status_code=status.HTTP_201_CREATED) 
-            #  dependencies=[Depends(req_user_role)])
+@router.post("/submit-auction", response_model=AuctionResponse, status_code=status.HTTP_201_CREATED, 
+             dependencies=[Depends(req_user_role)])
 def create_auction(
     file: UploadFile = File(...),
     card_name: str = Form(...),
