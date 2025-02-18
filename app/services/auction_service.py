@@ -131,14 +131,9 @@ class AuctionService:
         auction = self.get_auction_by_id(bid_info.AuctionID)
         if not auction:
             return None  # Auction Does not exist
-        # # Check if user exists
-        # bidder_profile = (
-        #     self.db.query(Profile).filter(Profile.UserID == user_id).first()
-        # )
-        # if not bidder_profile:
-        #     return None  # Return 404 profile not found
-
-        # Check if current bid is higher than latest bid
+        #Check if user id is the seller
+        if auction.SellerID == user_id:
+            return None  # Seller cannot bid on their own auction
         if auction.HighestBid + auction.MinimumIncrement > bid_info.BidAmount:
             return None  # Current bid not high enough
         else:
