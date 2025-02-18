@@ -67,9 +67,9 @@ app.include_router(auction_page.router, prefix="/bidding", tags=["Auction Page"]
 app.include_router(search.router, prefix="/api", tags=["Search"])
 app.include_router(pokemon_rag.router, prefix="/rag", tags=["RAG"])
 
-# @app.get("/")
-# def read_root():
-#     return {"message": "Welcome to the Pokémon Card Auction Platform"}
+@app.get("/")
+def read_root():
+    return {"message": "Welcome to the Pokémon Card Auction Platform"}
 
 if __name__ == "__main__":
     import uvicorn
