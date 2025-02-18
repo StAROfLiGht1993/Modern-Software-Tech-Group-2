@@ -313,33 +313,33 @@ class CognitoService:
             raise ServiceException(status_code=500, detail=f"Failed to resend confirmation code: {str(e)}")
 # ------------------------- End of update -----------------------------------------------------------------------------
 
-    #add method to list all users
-    def list_users(self):
-        """
-        List all users in the Cognito user pool.
-        """
-        try:
-            users = []
-            response = self.client.list_users(
-                UserPoolId=self.user_pool_id
-            )
-            users.extend(response['Users'])
+    # #add method to list all users
+    # def list_users(self):
+    #     """
+    #     List all users in the Cognito user pool.
+    #     """
+    #     try:
+    #         users = []
+    #         response = self.client.list_users(
+    #             UserPoolId=self.user_pool_id
+    #         )
+    #         users.extend(response['Users'])
 
-            # Handle pagination
-            while 'PaginationToken' in response:
-                response = self.client.list_users(
-                    UserPoolId=self.user_pool_id,
-                    PaginationToken=response['PaginationToken']
-                )
-                users.extend(response['Users'])
+    #         # Handle pagination
+    #         while 'PaginationToken' in response:
+    #             response = self.client.list_users(
+    #                 UserPoolId=self.user_pool_id,
+    #                 PaginationToken=response['PaginationToken']
+    #             )
+    #             users.extend(response['Users'])
 
-            return users
-        except self.client.exceptions.TooManyRequestsException:
-            raise ServiceException(status_code=429, detail="Request limit exceeded. Try again later.")
-        except self.client.exceptions.NotAuthorizedException:
-            raise ServiceException(status_code=403, detail="Insufficient permissions.")
-        except Exception as e:
-            raise ServiceException(status_code=500, detail=f"Failed to list users: {str(e)}")
+    #         return users
+    #     except self.client.exceptions.TooManyRequestsException:
+    #         raise ServiceException(status_code=429, detail="Request limit exceeded. Try again later.")
+    #     except self.client.exceptions.NotAuthorizedException:
+    #         raise ServiceException(status_code=403, detail="Insufficient permissions.")
+    #     except Exception as e:
+    #         raise ServiceException(status_code=500, detail=f"Failed to list users: {str(e)}")
 
 
 class RoleChecker:
